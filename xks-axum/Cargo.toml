@@ -1,0 +1,72 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+[package]
+name = "xks-proxy"
+version = "2.0.0"
+edition = "2018"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+axum = { version = "0.5", features = ["headers"] }
+axum-server = { version = "0.4", features = ["tls-rustls"] }
+axum-macros = "0.2"
+
+base64 = "0.13"
+bytes = "1.1"
+chrono = "0.4"
+const_format = "0.2"
+deadpool = { version = "0.9", features = ["rt_tokio_1", "unmanaged"] }
+
+hex = "0.4.2"
+
+http = "0.2"
+http-body = "0.4"
+hyper = "0.14"
+
+lazy_static = "1.4"
+
+oso = "0.26"
+oso-derive = "0.26"
+
+parking_lot = "0.12"
+pkcs11 = "0.5.0"
+
+ring = "0.16"
+
+rustls = "0.20"
+rustls-pemfile = "1.0"
+
+scratchstack-aws-signature = "0.10"
+
+serde = { version = "1.0", features = ["derive"] }
+serde_derive = "1.0"
+serde_json = "1.0"
+serde_with = "2.0"
+
+tokio = { version = "1", features = ["full"] }
+toml = "0.5"
+tonic = { version = "0.8", features = ["transport", "tls"] }
+tower-http = { version = "0.3", features = ["trace"] }
+
+tracing = "0.1"
+tracing-subscriber = "0.3"
+tracing-appender = "0.2"
+
+webpki = "0.22"
+
+[dev-dependencies]
+serial_test = "0.9"
+serial_test_derive = "0.9"
+
+[patch.crates-io]
+# Patch to fix segmentation fault upon loading and initializing the libCryptoki2_64.so
+# https://github.com/mheese/rust-pkcs11/issues/50
+pkcs11 = { path = "rust-pkcs11" }
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"

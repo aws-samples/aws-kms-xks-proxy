@@ -1,0 +1,7 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# Path to the xks-proxy configuration file for unit testing purposes.
+# This is also used as the default path to the xks-proxy configuration file
+# if the XKS_PROXY_SETTINGS_TOML environment variable is not set.
+XKS_PROXY_SETTINGS_TOML = "configuration/settings.toml"

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+FOLDER=/tmp/codedeploy
+cd $FOLDER || { echo "Failed to cd $FOLDER" >> after-install.txt; exit 1; }
+XKSPROXY_RPM="aws-kms-xks-proxy.rpm"
+
+{
+    mv /tmp/$XKSPROXY_RPM .
+    sha256sum $XKSPROXY_RPM
+
+    echo "yum removing xks-proxy"
+    yum remove -y xks-proxy
+
+    echo "yum installing xks-proxy"
+    yum install -y $XKSPROXY_RPM || { echo "Failed to install xks-proxy"; exit 1; }
+
+    echo "The AfterInstall deployment lifecycle event successfully completed."
+} >> after-install.txt 2>&1

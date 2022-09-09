@@ -1,0 +1,28 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# This appspec.yml file controls the behavior of CodeDeploy in a pipeline environment,
+# and must be pushed to the CodeCommit source repository to become effective.
+version: 0.0
+os: linux
+files:
+  # Note the buildspec.yml for CodeBuild specifies an absolute path for the output artifact
+  # whereas here we need to specify a relative path to be used by CodeDeploy on the deployed host.
+  - source: xks-axum/target/release/aws-kms-xks-proxy.rpm
+    # File path on the deployed host to put the above artifact
+    destination: /tmp
+hooks:
+  BeforeInstall:
+    - location: codepipeline/scripts/before-install
+      timeout: 5
+  # Note the proper version of rpm is made available by CodeDeploy
+  # only after the installation at AfterInstall, not before.
+  AfterInstall:
+    - location: codepipeline/scripts/after-install
+      timeout: 10
+  ApplicationStart:
+    - location: codepipeline/scripts/application-start
+      timeout: 5
+  ValidateService:
+    - location: codepipeline/scripts/validate-service
+      timeout: 5

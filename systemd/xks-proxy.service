@@ -1,0 +1,32 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+[Unit]
+Description=AWS External Keystore (XKS) Proxy Service
+
+[Service]
+# Specifies the configuration file for rust-xks-proxy
+Environment=XKS_PROXY_SETTINGS_TOML=/var/local/xks-proxy/.secret/settings.toml
+# Prints a backtrace to stderr whenever a panic occurs
+Environment=RUST_BACKTRACE=1
+
+# You can use the following environment variables to override the PKCS11 related
+# configurations
+
+# Specifies the file path to the PKCS#11 library.
+# Environment=PKCS11_HSM_MODULE=/local/centos/pkcs11-logger/build/linux/pkcs11-logger-x64.so
+
+# https://github.com/Pkcs11Interop/pkcs11-logger
+# Path to the original PKCS#11 library.
+# Environment=PKCS11_LOGGER_LIBRARY_PATH=/usr/safenet/lunaclient/lib/libCryptoki2_64.so
+
+# Path to the pkcs11-logger log file.
+# Environment=PKCS11_LOGGER_LOG_FILE_PATH=/var/local/xks-proxy/logs/pkcs11-logger-output.log
+
+# Specifies a bit mask that controls multiple pkcs11-logger features.
+# Environment=PKCS11_LOGGER_FLAGS=0
+
+ExecStart=/usr/sbin/xks-proxy
+
+[Install]
+WantedBy=multi-user.target

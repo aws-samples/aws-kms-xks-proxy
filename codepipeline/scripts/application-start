@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+FOLDER=/tmp/codedeploy
+cd $FOLDER || { echo "Failed to cd $FOLDER" >> application-start.txt; exit 1; }
+
+{
+    echo "Starting xks-proxy"
+    systemctl start xks-proxy || { echo "Failed to start xks-proxy"; exit 1; }
+
+    echo "Enabling xks-proxy"
+    systemctl enable xks-proxy || { echo "Failed to enable xks-proxy"; exit 1; }
+
+    echo "Starting xks-proxy_cleanlogs.timer"
+    systemctl start xks-proxy_cleanlogs.timer || { echo "Failed to start xks-proxy_cleanlogs.timer"; exit 1; }
+
+    echo "Enabling xks-proxy_cleanlogs.timer"
+    systemctl enable xks-proxy_cleanlogs.timer || { echo "Failed to enable xks-proxy_cleanlogs.timer"; exit 1; }
+
+    echo "The ApplicationStart deployment lifecycle event successfully completed."
+} >> application-start.txt 2>&1

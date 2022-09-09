@@ -1,0 +1,71 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+version: 0.2
+
+#env:
+  #variables:
+     # key: "value"
+     # key: "value"
+  #parameter-store:
+     # key: "value"
+     # key: "value"
+  #secrets-manager:
+     # key: secret-id:json-key:version-stage:version-id
+     # key: secret-id:json-key:version-stage:version-id
+  #exported-variables:
+     # - variable
+     # - variable
+  #git-credential-helper: yes
+#batch:
+  #fast-fail: true
+  #build-list:
+  #build-matrix:
+  #build-graph:
+phases:
+  install:
+    commands:
+      # - yum update -y
+      - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      - source $HOME/.cargo/env
+  #pre_build:
+    #commands:
+      # - command
+      # - command
+  build:
+    commands:
+      - mkdir /root/rpmbuild
+      - make install_rpm_tools release
+      # - echo -e "%_topdir /root/rpmbuild" > /root/.rpmmacros
+  #post_build:
+    #commands:
+      # - command
+      # - command
+#reports:
+  #report-name-or-arn:
+    #files:
+      # - location
+      # - location
+    #base-directory: location
+    #discard-paths: yes
+    #file-format: JunitXml | CucumberJson
+artifacts:
+  files:
+    # include the appspec.yml from the git repo
+    - appspec.yml
+
+    # include all the scripts from the git repo
+    - codepipeline/**/*
+
+    # include all the rpm from the git repo
+    - xks-axum/target/release/aws-kms-xks-proxy.rpm
+
+    # Actual locations of the rpm files
+    # - $HOME/rpmbuild/RPMS/**/*.rpm
+    # - $HOME/rpmbuild/SRPMS/*.rpm
+  #name: $(date +%Y-%m-%d)
+  #discard-paths: yes
+  #base-directory: location
+#cache:
+  #paths:
+    # - paths
