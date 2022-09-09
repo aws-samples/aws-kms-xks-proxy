@@ -1,0 +1,14 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# This timer unit is for cleaning up xks-proxy log files
+
+[Unit]
+Description=Clean up xks-proxy log files
+
+[Timer]
+# DOW YYYY-MM-DD HH:MM:SS
+OnCalendar=*-*-* *:00:00
+
+[Install]
+WantedBy=timers.target

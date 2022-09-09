@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+FOLDER=/tmp/codedeploy
+if [ -d $FOLDER ]
+then
+  rm -rf $FOLDER
+fi
+
+mkdir -p $FOLDER
+cd $FOLDER || { echo "Failed to cd $FOLDER" >> before-install.txt; exit 1; }
+echo "The BeforeInstall deployment lifecycle event successfully completed." >> before-install.txt

@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+declare -r directory=/var/local/xks-proxy/logs
+
+log_stderr() {
+     echo "$*" >&2
+}
+
+abort() {
+     log_stderr "$*"
+     exit 1
+}
+
+number_of_xksproxy_log_files() {
+    if [[ ! -d "$directory" ]]; then
+        echo 0
+        return
+    fi
+
+    local -i count=0
+    for _ in "$directory"/xks-proxy.log.*; do
+        ((++count))
+    done
+
+    echo "$count"
+}
+
+main() {
+    # LOG_RETENTION_NUMBER can be configured via the xks-proxy_cleanlogs.service systemd unit file
+    local -ir default_log_retention=${LOG_RETENTION_NUMBER:-24}
+    local -ir log_retention_number=$(( default_log_retention > 0 ? default_log_retention : 1 ))
+    local -ir delete_count=$(( $(number_of_xksproxy_log_files) - log_retention_number ))
+    local -i deleted=0
+    if (( delete_count > 0 )); then
+        for file in "$directory"/xks-proxy.log.*; do
+            log_stderr "removing $file"
+            rm "$file" || abort "failed to remove $file with status code $?"
+            (( ++deleted < delete_count )) || break
+        done
+    fi
+    echo "$deleted"
+}
+
+declare -i deleted_count
+deleted_count=$(main)
+echo "$0" completed successfully with "$deleted_count" files removed

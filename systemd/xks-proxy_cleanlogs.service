@@ -1,0 +1,14 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# This service unit is for cleaning up xks-proxy log files
+
+[Unit]
+Description=Clean up xks-proxy log files
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/xks-proxy_cleanlogs
+
+# Number of xks-proxy log files to keep
+Environment=LOG_RETENTION_NUMBER=24

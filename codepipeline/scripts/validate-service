@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+FOLDER=/tmp/codedeploy
+cd $FOLDER || { echo "Failed to cd $FOLDER" >> validate-service.txt; exit 1; }
+
+{
+    systemctl status xks-proxy xks-proxy_cleanlogs.service xks-proxy_cleanlogs.timer
+    echo "The ValidateService deployment lifecycle event successfully completed."
+} >> validate-service.txt 2>&1
