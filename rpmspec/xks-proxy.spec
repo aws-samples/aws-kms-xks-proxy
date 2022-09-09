@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 Name:           xks-proxy
-Version:        2.0.0
+Version:        2.0.1
 
 Release:        0%{?dist}
 Summary:        AWS External Keystore (XKS) Proxy Service
@@ -45,6 +45,8 @@ systemctl disable xks-proxy.service
 systemctl disable xks-proxy_cleanlogs.timer
 
 %changelog
+* Sun Sep 11 2022 Hanson Char <hchar@amazon.com> - 2.0.1
+- Support configurable interval to send TCP keepalive probes
 * Thu Sep 08 2022 Hanson Char <hchar@amazon.com> - 2.0.0
 - Rename sigv4_access_id to sigv4_access_key_id and sigv4_secret_key to sigv4_secret_access_key
 * Thu Aug 25 2022 Hanson Char <hchar@amazon.com> - 1.0.1

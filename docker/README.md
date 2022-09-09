@@ -18,25 +18,25 @@ This is an outline of how to build a docker image for `xks-proxy`, including inf
 1. Adjust [Dockerfile](Dockerfile) as needed.
 1. Build a docker image for `xks-proxy`:
 
-        docker build -t xks-proxy:v2.0.0 .
+        docker build -t xks-proxy:v2.0.1 .
 1. Save the image to a tar file, if it needs to be exported/shared:
 
-        docker save -o xks-proxy-docker-v2.0.0.tar xks-proxy:v2.0.0
-1. Compress `xks-proxy-docker-v2.0.0.tar` into `xks-proxy-docker-v2.0.0.tar.xz` if necessary:
+        docker save -o xks-proxy-docker-v2.0.1.tar xks-proxy:v2.0.1
+1. Compress `xks-proxy-docker-v2.0.1.tar` into `xks-proxy-docker-v2.0.1.tar.xz` if necessary:
 
-        xz -z -0 xks-proxy-docker-v2.0.0.tar
+        xz -z -0 xks-proxy-docker-v2.0.1.tar
 
 ## How to run `xks-proxy` in a docker container?
 
-1. Decompress `xks-proxy-docker-v2.0.0.tar.xz` to `xks-proxy-docker-v2.0.0.tar` if necessary:
+1. Decompress `xks-proxy-docker-v2.0.1.tar.xz` to `xks-proxy-docker-v2.0.1.tar` if necessary:
 
-       xz -d xks-proxy-docker-v2.0.0.tar.xz
+       xz -d xks-proxy-docker-v2.0.1.tar.xz
 1. Load the docker image if necessary:
 
-       docker load -i xks-proxy-docker-v2.0.0.tar
-1. Run `xks-proxy` in a docker container exposing port `80` (of the container) as port `8000` on the running host:
+       docker load -i xks-proxy-docker-v2.0.1.tar
+1. Run `xks-proxy` in a docker container exposing port `80` (of the container) as port `80` on the running host:
 
-        docker run --name xks-proxy -d -p 0.0.0.0:80:80 xks-proxy:v2.0.0
+        docker run --name xks-proxy -d -p 0.0.0.0:80:80 xks-proxy:v2.0.1
 1. Now you can access it at
 `http://<your hostname>/example/uri/path/prefix/kms/xks/v1`
 or whatever URI path you've configured in `settings.toml`.
@@ -45,7 +45,7 @@ or whatever URI path you've configured in `settings.toml`.
 
 * Remove the `xks-proxy` docker image:
 
-        docker rmi xks-proxy:v2.0.0
+        docker rmi xks-proxy:v2.0.1
 * Exec into the `xks-proxy` docker container:
 
         docker exec -it xks-proxy bash
@@ -57,7 +57,7 @@ or whatever URI path you've configured in `settings.toml`.
         docker container ls
 * Ping `xks-proxy` running in docker container
 
-        # should get back a "pong from xks-proxy v2.0.0" response
+        # should get back a "pong from xks-proxy v2.0.1" response
         curl http://localhost/ping
 * Follow the log of the running `xks-proxy` in the docker container
 

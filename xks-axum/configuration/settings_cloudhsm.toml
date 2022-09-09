@@ -5,11 +5,15 @@
 # It assumes you have installed and set up the necessary AWS CloudHSM client side library.
 [server]
 ip = "0.0.0.0"
-port = 8000
+port = 80
 region = "us-east-2"
 service = "kms-xks-proxy"
 # Optional configuration of ciphertext metadata in base 64 encoding
 # ciphertext_metadata_b64 = "djAuMC4x"
+
+# Optional configuration of how often to send TCP keepalive probes
+# No configuration means TCP keepalive probes is disabled.
+tcp_keepalive_secs = 60
 
 [tracing]
 # Used to control logging to stdout
