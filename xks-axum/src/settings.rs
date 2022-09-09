@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use std::collections::HashSet;
+use std::time::Duration;
 use std::{env, fs};
 
 use lazy_static::lazy_static;
 use serde_derive::Deserialize;
+use serde_with::{serde_as, DurationSeconds};
 use tracing::instrument;
 use tracing_appender::rolling::Rotation;
 
@@ -41,13 +43,17 @@ pub struct Settings {
     pub external_key_stores: Vec<ExternalKeyStore>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[serde_as]
+#[derive(Deserialize, Debug, Clone)]
 pub struct ServerConfig {
     pub ip: String,
     pub port: u16,
     pub region: String,
     pub service: String,
     pub ciphertext_metadata_b64: Option<String>,
+    // https://stackoverflow.com/questions/70184303/how-to-serialize-and-deserialize-chronoduration
+    #[serde_as(as = "Option<DurationSeconds<u64>>")]
+    pub tcp_keepalive_secs: Option<Duration>,
 }
 
 #[non_exhaustive]

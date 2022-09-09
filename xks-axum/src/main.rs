@@ -13,6 +13,7 @@ use axum::middleware;
 use axum::routing::get;
 use axum::{routing::post, Router};
 use axum_server::tls_rustls::RustlsConfig;
+use axum_server::AddrIncomingConfig;
 use const_format::concatcp;
 use http::{StatusCode, Uri};
 use tower_http::trace::TraceLayer;
@@ -56,15 +57,15 @@ async fn main() {
     let _guard = tracing_init();
     let server_config = &SETTINGS.server;
     tracing::info!(
-        "Starting {} in region {}",
-        server_config.service,
-        server_config.region
+        service = server_config.service,
+        region = server_config.region,
+        "Starting",
     );
 
     // https://docs.rs/axum-extra/0.1.2/axum_extra/middleware/middleware_fn/fn.from_fn.html
     let mut router = Router::new();
     for uri_path_prefix in XKSS.keys() {
-        tracing::trace!("Adding url paths with path prefix {uri_path_prefix}");
+        tracing::trace!(uri_path_prefix = uri_path_prefix, "Adding url paths");
         router = router
             .route(
                 &format!("{uri_path_prefix}{URI_PATH_HEALTH}"),
@@ -112,7 +113,7 @@ async fn main() {
     }
 
     match &security_config.secondary_auth {
-        Some(scheme) => tracing::info!("Secondary authorization with {scheme:?}"),
+        Some(scheme) => tracing::info!(scheme = ?scheme, "Secondary authorization"),
         None => tracing::info!("Secondary authorization is not configured."),
     }
 
@@ -132,22 +133,33 @@ async fn main() {
         .unwrap_or_else(|_| panic!("unable to parse server ip address {}", server_config.ip));
     let socket_addr = SocketAddr::from((ip_addr, server_config.port));
     tracing::info!("v{CARGO_PKG_VERSION} listening on {socket_addr}");
+    tracing::info!(tcp_keepalive_secs = ?server_config.tcp_keepalive_secs, "TCP keepalive interval");
 
     if security_config.is_tls_enabled {
-        let server_config: rustls::ServerConfig = tls::make_tls_server_config(
+        let rustls_server_config: rustls::ServerConfig = tls::make_tls_server_config(
             SETTINGS.tls.as_ref().expect("missing tls configuration"),
             security_config.is_mtls_enabled,
         )
         .await
         .expect("server tls misconfiguration");
-        let rustls_config: RustlsConfig = RustlsConfig::from_config(Arc::new(server_config));
+
+        let rustls_config: RustlsConfig = RustlsConfig::from_config(Arc::new(rustls_server_config));
         axum_server::bind_rustls(socket_addr, rustls_config)
+            .addr_incoming_config(
+                AddrIncomingConfig::default()
+                    .tcp_keepalive(server_config.tcp_keepalive_secs)
+                    .build(),
+            )
             .serve(router.into_make_service())
             .await
             .expect("https server address binding failed");
     } else {
-        // TLS termination
         axum_server::bind(socket_addr)
+            .addr_incoming_config(
+                AddrIncomingConfig::default()
+                    .tcp_keepalive(server_config.tcp_keepalive_secs)
+                    .build(),
+            )
             .serve(router.into_make_service())
             .await
             .expect("http server address binding failed");
@@ -221,8 +233,8 @@ fn tracing_init() -> Option<WorkerGuard> {
     tracing::info!("Tracing level: {level}");
     if is_file_writer_enabled {
         tracing::info!(
-            "Tracing file rotation kind: {}",
-            tracing_config.rotation_kind.as_ref().unwrap()
+            rotation_kind = tracing_config.rotation_kind.as_ref().unwrap(),
+            "Tracing file rotation"
         );
     }
     guard
