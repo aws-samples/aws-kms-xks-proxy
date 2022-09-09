@@ -1,6 +1,6 @@
 ## aws-kms-xks-proxy
 
-This package provides a reference implementation of the `AWS KMS External Keystore (XKS) Proxy API` for direct usage or further adaptation by external customers against any [Hardware Security Module](https://en.wikipedia.org/wiki/Hardware_security_module) (HSM) that supports [PKCS#11 v2.40](http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html).
+This package provides a sample implementation of the `AWS KMS External Keystore (XKS) Proxy API` for reference by external customers against any [Hardware Security Module](https://en.wikipedia.org/wiki/Hardware_security_module) (HSM) that supports [PKCS#11 v2.40](http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html).
 
 The current implementation is written in [Rust](https://www.rust-lang.org/) and is known to work with the following types of HSM:
 * `LunaSA 7.4.0` (via Thales eLab)
