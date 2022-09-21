@@ -133,7 +133,8 @@ async fn main() {
         .unwrap_or_else(|_| panic!("unable to parse server ip address {}", server_config.ip));
     let socket_addr = SocketAddr::from((ip_addr, server_config.port));
     tracing::info!("v{CARGO_PKG_VERSION} listening on {socket_addr}");
-    tracing::info!(tcp_keepalive_secs = ?server_config.tcp_keepalive_secs, "TCP keepalive interval");
+    tracing::info!(tcp_keepalive = ?server_config.tcp_keepalive, "TCP keepalive");
+    let ka_config = &server_config.tcp_keepalive;
 
     if security_config.is_tls_enabled {
         let rustls_server_config: rustls::ServerConfig = tls::make_tls_server_config(
@@ -147,7 +148,9 @@ async fn main() {
         axum_server::bind_rustls(socket_addr, rustls_config)
             .addr_incoming_config(
                 AddrIncomingConfig::default()
-                    .tcp_keepalive(server_config.tcp_keepalive_secs)
+                    .tcp_keepalive(ka_config.tcp_keepalive_secs)
+                    .tcp_keepalive_interval(ka_config.tcp_keepalive_interval_secs)
+                    .tcp_keepalive_retries(ka_config.tcp_keepalive_retries)
                     .build(),
             )
             .serve(router.into_make_service())
@@ -157,7 +160,9 @@ async fn main() {
         axum_server::bind(socket_addr)
             .addr_incoming_config(
                 AddrIncomingConfig::default()
-                    .tcp_keepalive(server_config.tcp_keepalive_secs)
+                    .tcp_keepalive(ka_config.tcp_keepalive_secs)
+                    .tcp_keepalive_interval(ka_config.tcp_keepalive_interval_secs)
+                    .tcp_keepalive_retries(ka_config.tcp_keepalive_retries)
                     .build(),
             )
             .serve(router.into_make_service())

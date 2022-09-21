@@ -3,7 +3,7 @@
 
 [package]
 name = "xks-proxy"
-version = "2.0.1"
+version = "3.0.0"
 edition = "2018"
 publish = false
 
@@ -64,6 +64,10 @@ serial_test_derive = "0.9"
 # Patch to fix segmentation fault upon loading and initializing the libCryptoki2_64.so
 # https://github.com/mheese/rust-pkcs11/issues/50
 pkcs11 = { path = "rust-pkcs11" }
+
+# Patch to enable configuration of full TCP keepalive parameters
+hyper = { git = "https://github.com/hyperium/hyper.git", branch = "0.14.x" }
+axum-server = { path = "axum-server" }
 
 [profile.dev]
 panic = "abort"

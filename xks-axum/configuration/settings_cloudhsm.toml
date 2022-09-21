@@ -11,9 +11,17 @@ service = "kms-xks-proxy"
 # Optional configuration of ciphertext metadata in base 64 encoding
 # ciphertext_metadata_b64 = "djAuMC4x"
 
-# Optional configuration of how often to send TCP keepalive probes
+# Configuration of TCP keepalive probes
+# https://en.wikipedia.org/wiki/Keepalive
+[server.tcp_keepalive]
+# (Optional) Number of seconds between two keepalive transmissions in idle condition
 # No configuration means TCP keepalive probes is disabled.
 tcp_keepalive_secs = 60
+# (Optional) Number of retransmissions to be carried out before declaring that remote end is not available
+tcp_keepalive_retries = 3
+# (Optional) Number of seconds between two successive keepalive retransmissions,
+# if acknowledgement to the previous keepalive transmission is not received
+tcp_keepalive_interval_secs = 1
 
 [tracing]
 # Used to control logging to stdout
