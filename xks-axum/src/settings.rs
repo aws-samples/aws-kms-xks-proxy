@@ -44,16 +44,27 @@ pub struct Settings {
 }
 
 #[serde_as]
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug)]
 pub struct ServerConfig {
     pub ip: String,
     pub port: u16,
     pub region: String,
     pub service: String,
     pub ciphertext_metadata_b64: Option<String>,
+    pub tcp_keepalive: TcpKeepaliveConfig,
+}
+
+#[serde_as]
+#[derive(Deserialize, Debug, Clone)]
+pub struct TcpKeepaliveConfig {
     // https://stackoverflow.com/questions/70184303/how-to-serialize-and-deserialize-chronoduration
     #[serde_as(as = "Option<DurationSeconds<u64>>")]
     pub tcp_keepalive_secs: Option<Duration>,
+
+    #[serde_as(as = "Option<DurationSeconds<u64>>")]
+    pub tcp_keepalive_interval_secs: Option<Duration>,
+
+    pub tcp_keepalive_retries: Option<u32>,
 }
 
 #[non_exhaustive]
@@ -228,6 +239,7 @@ mod settings_test {
     use std::env;
     use std::net::IpAddr;
     use std::str::FromStr;
+    use std::time::Duration;
 
     use crate::settings::SecondaryAuth::Oso;
     use crate::settings::PKCS11_HSM_MODULE;
@@ -241,6 +253,16 @@ mod settings_test {
         assert!(!server_config.service.is_empty());
 
         let _ip: IpAddr = server_config.ip.parse().unwrap();
+
+        assert_eq!(
+            server_config.tcp_keepalive.tcp_keepalive_secs,
+            Some(Duration::from_secs(60))
+        );
+        assert_eq!(
+            server_config.tcp_keepalive.tcp_keepalive_interval_secs,
+            Some(Duration::from_secs(1))
+        );
+        assert_eq!(server_config.tcp_keepalive.tcp_keepalive_retries, Some(3));
     }
 
     #[test]
