@@ -45,7 +45,7 @@ systemctl disable xks-proxy.service
 systemctl disable xks-proxy_cleanlogs.timer
 
 %changelog
-* Sun Sep 21 2022 Hanson Char <hchar@amazon.com> - 3.0.0
+* Wed Sep 21 2022 Hanson Char <hchar@amazon.com> - 3.0.0
 - Support full configurable of TCP keepalive probes
 * Sun Sep 11 2022 Hanson Char <hchar@amazon.com> - 2.0.1
 - Support configurable interval to send TCP keepalive probes
