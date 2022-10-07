@@ -17,12 +17,14 @@ jobs:
       # - run: sudo apt-get install make
       - run: sudo apt-get install -y rpm rpmlint alien
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
-      - name: Run some version commands
-        run: |
-          echo "💡 cargo --version ..."
-          cargo --version
-          echo "💡 rustup --version ..."
-          rustup --version
-          echo "💡 curl --version ..."
-          curl --version
+      - name: Build the rpm and covert to deb
+        run: make
+      # - name: Run some version commands
+      #   run: |
+      #     echo "💡 cargo --version ..."
+      #     cargo --version
+      #     echo "💡 rustup --version ..."
+      #     rustup --version
+      #     echo "💡 curl --version ..."
+      #     curl --version
       - run: echo "🍏 This job's status is ${{ job.status }}."
