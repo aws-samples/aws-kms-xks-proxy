@@ -25,6 +25,7 @@ RPMBUILD_SERVICE_UNIT := $(RPMBUILDIR_SERVICE_UNIT)/$(NAME).service
 RPMBUILD_SPECFILE := $(SPECDIR)/$(SPECFILE_NAME)
 RPMBUILD_SOURCEFILE := $(SOURCESDIR)/$(SOURCE_BUNDLE)
 RPM := $(RPMDIR)/x86_64/$(NAME)-$(VERSION)-$(RELEASE).x86_64.rpm
+DEB := $(NAME)-$(VERSION)-$(RELEASE).deb
 
 .PHONY: release
 release: $(RPM)
@@ -35,8 +36,16 @@ $(RPM): $(RPMBUILD_SPECFILE) $(RPMBUILD_SOURCEFILE) $(RPMBUILD_APP) $(RPMBUILD_S
         # and CodeDeploy in appspec.yml
 	ln -s $(RPM) $(APP_FROM_DIR)/aws-kms-xks-proxy.rpm
 
+ifeq (, $(shell which alien))
+	@echo "No command alien found"
+else
+	sudo alien $(RPM)
+endif
+
 $(RPMBUILD_SPECFILE):
-	rpmdev-setuptree
+	for dir in BUILD RPMS SOURCES SPECS SRPMS; do \
+		mkdir -p ~/rpmbuild/$$dir; \
+	done
 	cp $(SPECFILE) $@
 
 $(RPMBUILD_SOURCEFILE):
