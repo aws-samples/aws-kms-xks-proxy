@@ -1,0 +1,28 @@
+name: Build
+run-name: ${{ github.actor }} is building 🚀
+on: [push]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+      # - run: echo "🖥️ At workspace ${{ github.workspace }}."
+      - run: sudo apt-get update -y
+      # - run: sudo apt-get install make
+      - run: sudo apt-get install -y rpm rpmlint alien
+      - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
+      - name: Run some version commands
+        run: |
+          echo "💡 cargo --version ..."
+          cargo --version
+          echo "💡 rustup --version ..."
+          rustup --version
+          echo "💡 curl --version ..."
+          curl --version
+      - run: echo "🍏 This job's status is ${{ job.status }}."
