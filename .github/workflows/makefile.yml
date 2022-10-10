@@ -1,5 +1,10 @@
 name: Makefile CI
 
+env:
+  RUST_BACKTRACE: 1
+  PROJECT_DIR: xks-axum
+  ARTIFACT: aws-kms-xks-proxy
+
 on:
   push:
     branches: [ "main" ]
@@ -7,18 +12,120 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  style:
+    name: Check Style
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    runs-on: ubuntu-latest
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt
+
+      - name: cargo fmt --check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --manifest-path=${{ env.PROJECT_DIR }}/Cargo.toml --all -- --check
+
+  test-n-clippy:
+    name: Unit Test and Clippy
+    runs-on: ubuntu-22.04
+    needs: style
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install dependencies
-      run: sudo apt-get install -y rpm rpmlint alien
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+
+    - name: Test
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --manifest-path=${{ env.PROJECT_DIR }}/Cargo.toml
+
+    - name: Clippy
+      uses: actions-rs/cargo@v1
+      with:
+        command: clippy
+        args: --manifest-path=${{ env.PROJECT_DIR }}/Cargo.toml
+
+  # check-on-macos:
+
+  #   runs-on: macos-latest
+  #   needs:
+  #     - style
+
+  #   steps:
+  #   - uses: actions/checkout@v3
+
+  #   - name: Install Rust
+  #     run: curl https://sh.rustup.rs -sSf | sh -s -- -y
+
+  #   - name: Update Rust and Cargo
+  #     run: |
+  #       rustup update
+  #       cd xks-axum
+  #       cargo update
+
+  #   - name: Cargo test on xks-proxy
+  #     run: |
+  #       cd xks-axum
+  #       cargo test
+
+  #   - name: Cargo clippy on xks-proxy
+  #     run: |
+  #       cd xks-axum
+  #       cargo clippy
+
+  # The pkcs11 crate v0.5.0 doesn't compile on Windows
+  # https://docs.rs/pkcs11/latest/pkcs11/
+  # check-on-windows:
+
+  #   runs-on: windows-latest
+
+  build:
+    name: Build Packages
+
+    runs-on: ubuntu-22.04
+    # needs: [check-on-ubuntu, check-on-macos]
+    needs: test-n-clippy
+
+    steps:
+    - uses: actions/checkout@v3
 
     - name: Install Rust
-      run: curl https://sh.rustup.rs -sSf | sh -s -- -y
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+
+    - name: Install other dependencies
+      # run: sudo apt-get install -y rpm rpmlint alien
+      run: sudo apt-get install -y rpm alien
 
     - name: Build xks-proxy rpm and deb
       run: make
+
+    - name: Upload rpm
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.ARTIFACT }}.rpm
+        path: /home/runner/rpmbuild/RPMS/x86_64/*.rpm
+
+    - name: Upload deb
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.ARTIFACT }}.deb
+        path: ./*.deb

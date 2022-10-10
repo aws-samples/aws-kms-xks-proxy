@@ -1,3 +1,5 @@
+![](https://github.com/aws-samples/aws-kms-xks-proxy/actions/workflows/makefile.yml/badge.svg)
+
 ## aws-kms-xks-proxy
 
 This package provides a sample implementation of the `AWS KMS External Keystore (XKS) Proxy API` for reference by external customers against any [Hardware Security Module](https://en.wikipedia.org/wiki/Hardware_security_module) (HSM) that supports [PKCS#11 v2.40](http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html).
@@ -108,4 +110,3 @@ See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more inform
 ## License
 
 This project is licensed under the Apache-2.0 License.
-
