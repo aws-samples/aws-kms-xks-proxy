@@ -32,7 +32,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install Rust
+    - name: Install Rust Stable
       uses: dtolnay/rust-toolchain@stable
 
     - name: Unit Test
@@ -41,51 +41,54 @@ jobs:
     - name: Clippy
       run: cargo clippy --manifest-path=${{ env.PROJECT_DIR }}/Cargo.toml
 
-  # check-on-macos:
+  miri:
+    name: Check for Undefined Behavior
+    runs-on: ubuntu-22.04
+    needs: style
 
-  #   runs-on: macos-latest
-  #   needs:
-  #     - style
+    steps:
+    - uses: actions/checkout@v3
 
-  #   steps:
-  #   - uses: actions/checkout@v3
+    - name: Install Rust Nightly
+      uses: dtolnay/rust-toolchain@nightly
+      with:
+        components: miri
 
-  #   - name: Install Rust
-  #     run: curl https://sh.rustup.rs -sSf | sh -s -- -y
+    - name: Miri Test
+      env:
+        MIRIFLAGS: -Zmiri-disable-isolation
+      run: cargo +nightly miri test --manifest-path=${{ env.PROJECT_DIR }}/Cargo.toml
 
-  #   - name: Update Rust and Cargo
-  #     run: |
-  #       rustup update
-  #       cd xks-axum
-  #       cargo update
+  check-on-macos:
+    name: Check on Mac
+    runs-on: macos-latest
+    needs:
+      - style
 
-  #   - name: Cargo test on xks-proxy
-  #     run: |
-  #       cd xks-axum
-  #       cargo test
+    steps:
+    - uses: actions/checkout@v3
 
-  #   - name: Cargo clippy on xks-proxy
-  #     run: |
-  #       cd xks-axum
-  #       cargo clippy
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Check
+      run: cargo check --manifest-path=${{ env.PROJECT_DIR }}/Cargo.toml
 
   # The pkcs11 crate v0.5.0 doesn't compile on Windows
   # https://docs.rs/pkcs11/latest/pkcs11/
   # check-on-windows:
-
   #   runs-on: windows-latest
 
   build:
     name: Build Packages
 
     runs-on: ubuntu-22.04
-    # needs: [check-on-ubuntu, check-on-macos]
-    needs: test-n-clippy
+    needs: [test-n-clippy, miri, check-on-macos]
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install Rust
+    - name: Install Rust Stable
       uses: dtolnay/rust-toolchain@stable
 
     - name: Install other dependencies
