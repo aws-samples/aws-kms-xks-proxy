@@ -20,13 +20,18 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
 
       - name: Check format
         run: cargo fmt --manifest-path=${{ env.PROJECT_DIR }}/Cargo.toml --all -- --check
 
   test-n-clippy:
     name: Unit Test and Clippy
-    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, al2]
+    runs-on: ${{ matrix.os }}
     needs: style
 
     steps:
@@ -34,6 +39,8 @@ jobs:
 
     - name: Install Rust Stable
       uses: dtolnay/rust-toolchain@stable
+      with:
+        components: clippy
 
     - name: Unit Test
       run: cargo test --manifest-path=${{ env.PROJECT_DIR }}/Cargo.toml
@@ -43,7 +50,10 @@ jobs:
 
   miri:
     name: Check for Undefined Behavior
-    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, al2]
+    runs-on: ${{ matrix.os }}
     needs: style
 
     steps:
@@ -61,9 +71,8 @@ jobs:
 
   check-on-macos:
     name: Check on Mac
-    runs-on: macos-latest
-    needs:
-      - style
+    runs-on: macos-12
+    needs: style
 
     steps:
     - uses: actions/checkout@v3
@@ -81,8 +90,10 @@ jobs:
 
   build:
     name: Build Packages
-
-    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, al2]
+    runs-on: ${{ matrix.os }}
     needs: [test-n-clippy, miri, check-on-macos]
 
     steps:
@@ -92,18 +103,35 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
 
     - name: Install other dependencies
-      run: sudo apt-get install -y rpm alien
+      run: |
+        if type apt-get 2>/dev/null; then
+            # Install on Debian/Ubuntu
+            sudo apt-get install -y rpm alien
+        fi
+        if type yum 2>/dev/null; then
+            # Install on Centos/AL2
+            sudo yum install -y rpmdevtools rpm-build rpm-devel rpmlint
+        fi
 
     - name: Build xks-proxy rpm and deb
-      run: make
+      run: |
+        make
+        rpm_name=$(basename ~/rpmbuild/RPMS/x86_64/*.rpm)
+        echo "RPM_NAME=$rpm_name" >> $GITHUB_ENV
+        if ls *.deb >/dev/null 2>&1; then
+          echo "DEB_CREATED=1" >> $GITHUB_ENV
+        else
+          echo "DEB_CREATED=0" >> $GITHUB_ENV
+        fi
 
     - name: Upload rpm
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ env.ARTIFACT }}.rpm
-        path: /home/runner/rpmbuild/RPMS/x86_64/*.rpm
+        name: ${{ env.RPM_NAME }}
+        path: ~/rpmbuild/RPMS/x86_64/${{ env.RPM_NAME }}
 
     - name: Upload deb
+      if: env.DEB_CREATED == 1
       uses: actions/upload-artifact@v3
       with:
         name: ${{ env.ARTIFACT }}.deb
