@@ -3,7 +3,6 @@ name: Makefile CI
 env:
   RUST_BACKTRACE: 1
   PROJECT_DIR: xks-axum
-  ARTIFACT: aws-kms-xks-proxy
 
 on:
   pull_request:
@@ -30,7 +29,7 @@ jobs:
     name: Unit Test and Clippy
     strategy:
       matrix:
-        os: [ubuntu-22.04, al2]
+        os: [ubuntu-22.04, al2, al2aarch64]
     runs-on: ${{ matrix.os }}
     needs: style
 
@@ -52,7 +51,7 @@ jobs:
     name: Check for Undefined Behavior
     strategy:
       matrix:
-        os: [ubuntu-22.04, al2]
+        os: [ubuntu-22.04, al2, al2aarch64]
     runs-on: ${{ matrix.os }}
     needs: style
 
@@ -92,8 +91,12 @@ jobs:
     name: Build Packages
     strategy:
       matrix:
-        os: [ubuntu-22.04, al2]
-    runs-on: ${{ matrix.os }}
+        config:
+          - { os: ubuntu-22.04, arch: x86_64 }
+          - { os: al2, arch: x86_64 }
+          - { os: al2aarch64, arch: aarch64 }
+    runs-on: ${{ matrix.config.os }}
+
     needs: [test-n-clippy, miri, check-on-macos]
 
     steps:
@@ -116,23 +119,70 @@ jobs:
     - name: Build xks-proxy rpm and deb
       run: |
         make
-        rpm_name=$(basename ~/rpmbuild/RPMS/x86_64/*.rpm)
+        rpm_name=$(basename ~/rpmbuild/RPMS/**/*.rpm)
         echo "RPM_NAME=$rpm_name" >> $GITHUB_ENV
         if ls *.deb >/dev/null 2>&1; then
-          echo "DEB_CREATED=1" >> $GITHUB_ENV
+          deb_name=$(ls *.deb)
+          # Include the architecture as part of the file name
+          arch_deb_name=${deb_name/.deb/-${{ matrix.config.arch }}.deb}
+          mv "$deb_name" "$arch_deb_name"
+          echo "DEB_ARTIFACT=$arch_deb_name" >> $GITHUB_ENV
         else
-          echo "DEB_CREATED=0" >> $GITHUB_ENV
+          echo "DEB_ARTIFACT=None" >> $GITHUB_ENV
         fi
 
     - name: Upload rpm
       uses: actions/upload-artifact@v3
       with:
         name: ${{ env.RPM_NAME }}
-        path: ~/rpmbuild/RPMS/x86_64/${{ env.RPM_NAME }}
+        path: ~/rpmbuild/RPMS/**/${{ env.RPM_NAME }}
 
     - name: Upload deb
-      if: env.DEB_CREATED == 1
+      if: env.DEB_ARTIFACT != 'None'
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ env.ARTIFACT }}.deb
+        name: ${{ env.DEB_ARTIFACT }}
         path: ./*.deb
+
+  build-docker:
+    name: Build Docker Image
+    strategy:
+      matrix:
+        # https://github.com/orgs/community/discussions/25949
+        config:
+          - { os: al2, arch: x86_64 }
+          - { os: al2aarch64, arch: aarch64 }
+    runs-on: ${{ matrix.config.os }}
+    needs: [test-n-clippy, miri, check-on-macos]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Docker
+      run: |
+        if type yum 2>/dev/null; then
+            # Install on Centos/AL2
+            sudo yum install -y docker
+        fi
+
+    # https://stackoverflow.com/questions/53918841/how-to-install-docker-on-amazon-linux2
+    - name: Start Docker
+      run: |
+        if type yum 2>/dev/null; then
+            sudo service docker start
+            sudo usermod -a -G docker ec2-user
+            sudo chmod 666 /var/run/docker.sock
+            docker version
+        fi
+
+    - name: Build docker image
+      run: |
+        docker build -t xks-proxy:latest .
+        docker save -o xks-proxy-docker-v3.0.0-${{ matrix.config.arch }}.tar xks-proxy:latest
+        xz -z -0 xks-proxy-docker-v3.0.0-${{ matrix.config.arch }}.tar
+
+    - name: Upload docker image
+      uses: actions/upload-artifact@v3
+      with:
+        name: xks-proxy-docker-v3.0.0-${{ matrix.config.arch }}.tar.xz
+        path: ./xks-proxy-docker-v3.0.0-${{ matrix.config.arch }}.tar.xz

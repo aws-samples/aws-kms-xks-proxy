@@ -39,7 +39,11 @@ $(RPM): $(RPMBUILD_SPECFILE) $(RPMBUILD_SOURCEFILE) $(RPMBUILD_APP) $(RPMBUILD_S
 ifeq (, $(shell which alien))
 	@echo "No command alien found"
 else
+ifeq (, $(shell which sudo))
+	alien $(RPM)
+else
 	sudo alien $(RPM)
+endif
 endif
 
 $(RPMBUILD_SPECFILE):
