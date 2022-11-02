@@ -66,7 +66,6 @@ serial_test_derive = "0.9"
 pkcs11 = { path = "rust-pkcs11" }
 
 # Patch to enable configuration of full TCP keepalive parameters
-hyper = { git = "https://github.com/hyperium/hyper.git", branch = "0.14.x" }
 axum-server = { path = "axum-server" }
 
 [profile.dev]
