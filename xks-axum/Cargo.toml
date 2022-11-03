@@ -65,9 +65,6 @@ serial_test_derive = "0.9"
 # https://github.com/mheese/rust-pkcs11/issues/50
 pkcs11 = { path = "rust-pkcs11" }
 
-# Patch to enable configuration of full TCP keepalive parameters
-axum-server = { path = "axum-server" }
-
 [profile.dev]
 panic = "abort"
 
