@@ -18,7 +18,7 @@ docker build -t xks-proxy:latest .
 ```
 Run `xks-proxy` as a Docker container:
 ```bash
-docker run --name xks-proxy -d -p 0.0.0.0:80:80 xks-proxy:latest
+docker run --rm --name xks-proxy -d -p 0.0.0.0:80:80 xks-proxy:latest
 ```
 Verify the server is up and running:
 ```bash
@@ -53,10 +53,9 @@ export SCHEME=
 ```
 You should see `All 35 tests PASSED` at the end.
 
-To stop and remove the Docker container running `xks-proxy`:
+To stop the Docker container running `xks-proxy`:
 ```bash
 docker container stop xks-proxy
-docker container rm xks-proxy
 ```
 More information about the use of docker can be found at [docker/README.md](docker/README.md).
 
