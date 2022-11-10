@@ -16,6 +16,7 @@ use axum_server::tls_rustls::RustlsConfig;
 use axum_server::AddrIncomingConfig;
 use const_format::concatcp;
 use http::{StatusCode, Uri};
+use settings::ServerConfig;
 use tower_http::trace::TraceLayer;
 use tracing::Level;
 use tracing_appender::non_blocking::WorkerGuard;
@@ -62,6 +63,18 @@ async fn main() {
         "Starting",
     );
 
+    let port_http_ping = server_config.port_http_ping();
+
+    if server_config.port == port_http_ping {
+        proxy_server(server_config).await;
+    } else {
+        let proxy = tokio::spawn(proxy_server(server_config));
+        let http_health_check = tokio::spawn(http_health_check_server(server_config));
+        let _ = tokio::join!(proxy, http_health_check);
+    }
+}
+
+async fn proxy_server(server_config: &ServerConfig) {
     // https://docs.rs/axum-extra/0.1.2/axum_extra/middleware/middleware_fn/fn.from_fn.html
     let mut router = Router::new();
     for uri_path_prefix in XKSS.keys() {
@@ -132,7 +145,7 @@ async fn main() {
         .parse()
         .unwrap_or_else(|_| panic!("unable to parse server ip address {}", server_config.ip));
     let socket_addr = SocketAddr::from((ip_addr, server_config.port));
-    tracing::info!("v{CARGO_PKG_VERSION} listening on {socket_addr}");
+    tracing::info!("v{CARGO_PKG_VERSION} listening on {socket_addr} for traffic");
     tracing::info!(tcp_keepalive = ?server_config.tcp_keepalive, "TCP keepalive");
     let ka_config = &server_config.tcp_keepalive;
 
@@ -169,6 +182,30 @@ async fn main() {
             .await
             .expect("http server address binding failed");
     }
+}
+
+async fn http_health_check_server(server_config: &ServerConfig) {
+    let health_check_router = Router::new()
+        .route(URI_PATH_PING, get(|| async { PING_RESPONSE }))
+        .fallback(fallback.into_service());
+    let ip_addr: IpAddr = server_config
+        .ip
+        .parse()
+        .unwrap_or_else(|_| panic!("unable to parse server ip address {}", server_config.ip));
+    let socket_addr = SocketAddr::from((ip_addr, server_config.port_http_ping()));
+    tracing::info!("http://{socket_addr}/ping available for health check");
+    let ka_config = &server_config.tcp_keepalive;
+    axum_server::bind(socket_addr)
+        .addr_incoming_config(
+            AddrIncomingConfig::default()
+                .tcp_keepalive(ka_config.tcp_keepalive_secs)
+                .tcp_keepalive_interval(ka_config.tcp_keepalive_interval_secs)
+                .tcp_keepalive_retries(ka_config.tcp_keepalive_retries)
+                .build(),
+        )
+        .serve(health_check_router.into_make_service())
+        .await
+        .expect("http health check address binding failed");
 }
 
 /// Initialize tracing to output to either the stdout or file according to the tracing configurations.
