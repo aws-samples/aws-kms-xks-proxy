@@ -7,6 +7,8 @@
 [server]
 ip = "0.0.0.0"
 port = 80
+# (Optional) port used for http ping.  Defaults to 80.
+# port_http_ping = 80
 region = "us-east-1"
 service = "kms-xks-proxy"
 # Optional configuration of ciphertext metadata in base 64 encoding

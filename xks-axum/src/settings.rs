@@ -48,10 +48,18 @@ pub struct Settings {
 pub struct ServerConfig {
     pub ip: String,
     pub port: u16,
+    // Port used for http ping.  Defaults to 80.
+    port_http_ping: Option<u16>,
     pub region: String,
     pub service: String,
     pub ciphertext_metadata_b64: Option<String>,
     pub tcp_keepalive: TcpKeepaliveConfig,
+}
+
+impl ServerConfig {
+    pub fn port_http_ping(&self) -> u16 {
+        self.port_http_ping.unwrap_or(80)
+    }
 }
 
 #[serde_as]

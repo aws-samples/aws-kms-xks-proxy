@@ -14,19 +14,19 @@ An outline and some examples on how to build a docker image for `xks-proxy` and 
         docker build -t xks-proxy:latest .
 1. Save the image to a tar file, if it needs to be exported/shared:
 
-        docker save -o xks-proxy-docker-v3.0.0.tar xks-proxy:latest
-1. Compress `xks-proxy-docker-v3.0.0.tar` into `xks-proxy-docker-v3.0.0.tar.xz` if necessary:
+        docker save -o xks-proxy-docker-v3.1.0.tar xks-proxy:latest
+1. Compress `xks-proxy-docker-v3.1.0.tar` into `xks-proxy-docker-v3.1.0.tar.xz` if necessary:
 
-        xz -z -0 xks-proxy-docker-v3.0.0.tar
+        xz -z -0 xks-proxy-docker-v3.1.0.tar
 
 ## How to run `xks-proxy` in a docker container?
 
-1. Decompress `xks-proxy-docker-v3.0.0.tar.xz` to `xks-proxy-docker-v3.0.0.tar` if necessary:
+1. Decompress `xks-proxy-docker-v3.1.0.tar.xz` to `xks-proxy-docker-v3.1.0.tar` if necessary:
 
-       xz -d xks-proxy-docker-v3.0.0.tar.xz
+       xz -d xks-proxy-docker-v3.1.0.tar.xz
 1. Load the docker image if necessary:
 
-       docker load -i xks-proxy-docker-v3.0.0.tar
+       docker load -i xks-proxy-docker-v3.1.0.tar
 1. Run `xks-proxy` in a docker container exposing port `80` (of the container) as port `80` on the running host:
 
         docker run --name xks-proxy -d -p 0.0.0.0:80:80 xks-proxy:latest
@@ -50,7 +50,7 @@ or whatever URI path you've configured in `settings.toml`.
         docker container ls
 * Ping `xks-proxy` running in docker container
 
-        # should get back a "pong from xks-proxy v3.0.0" response
+        # should get back a "pong from xks-proxy v3.1.0" response
         curl http://localhost/ping
 * Follow the log of the running `xks-proxy` in the docker container
 
