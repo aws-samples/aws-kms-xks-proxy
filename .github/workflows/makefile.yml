@@ -178,11 +178,11 @@ jobs:
     - name: Build docker image
       run: |
         docker build -t xks-proxy:latest .
-        docker save -o xks-proxy-docker-v3.1.0-${{ matrix.config.arch }}.tar xks-proxy:latest
-        xz -z -0 xks-proxy-docker-v3.1.0-${{ matrix.config.arch }}.tar
+        docker save -o xks-proxy-docker-v3.1.1-${{ matrix.config.arch }}.tar xks-proxy:latest
+        xz -z -0 xks-proxy-docker-v3.1.1-${{ matrix.config.arch }}.tar
 
     - name: Upload docker image
       uses: actions/upload-artifact@v3
       with:
-        name: xks-proxy-docker-v3.1.0-${{ matrix.config.arch }}.tar.xz
-        path: ./xks-proxy-docker-v3.1.0-${{ matrix.config.arch }}.tar.xz
+        name: xks-proxy-docker-v3.1.1-${{ matrix.config.arch }}.tar.xz
+        path: ./xks-proxy-docker-v3.1.1-${{ matrix.config.arch }}.tar.xz

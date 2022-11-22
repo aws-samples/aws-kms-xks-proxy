@@ -469,9 +469,7 @@ where
                     JsonRejection::MissingJsonContentType(err) => {
                         ValidationException.as_axum_error(err.to_string())
                     }
-                    err => {
-                        InternalException.as_axum_error(format!("Unknown internal error: {err}"))
-                    }
+                    err => ValidationException.as_axum_error(format!("Unknown JSON error: {err}")),
                 })
             }
         }
