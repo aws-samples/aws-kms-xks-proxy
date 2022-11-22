@@ -26,7 +26,7 @@ curl localhost/ping
 ```
 You should see the response:
 
->pong from xks-proxy v3.1.0
+>pong from xks-proxy v3.1.1
 
 which indicates the server is now up and running.  You can monitor the logs with:
 ```bash
