@@ -250,7 +250,7 @@ pub fn pkcs11_strerror(err: CK_RV) -> &'static str {
 }
 
 #[instrument]
-pub fn new_session(is_login: bool) -> Result<CK_SESSION_HANDLE, rust_pkcs11::errors::Error> {
+pub fn new_session() -> Result<CK_SESSION_HANDLE, rust_pkcs11::errors::Error> {
     // Note the read lock gets dropped immediately after use
     if let Some(ctx_read_guard) = P11_CONTEXT.try_read_for(Duration::from_millis(
         SETTINGS.pkcs11.context_read_timeout_milli,
@@ -267,16 +267,18 @@ pub fn new_session(is_login: bool) -> Result<CK_SESSION_HANDLE, rust_pkcs11::err
             None,
             None,
         )?;
-        if is_login {
-            tracing::info!("Logging out session on slot {slot_id} before logging in");
-            if let Err(pkcs11_error) = ctx_read_guard.logout(session_handle) {
-                tracing::warn!(
-                    "Failed to logout on slot {slot_id} due to {}.  Please ignore the first such warning after the server has started.",
-                    pkcs11_error_string(&pkcs11_error)
-                );
+        tracing::info!("Logging in session on slot {slot_id}");
+        if let Err(pkcs11_err) = ctx_read_guard.login(session_handle, CKU_USER, Some(user_pin)) {
+            let is_user_already_logged_in =
+                if let rust_pkcs11::errors::Error::Pkcs11(ck_rv) = pkcs11_err {
+                    ck_rv == CKR_USER_ALREADY_LOGGED_IN
+                } else {
+                    false
+                };
+            if !is_user_already_logged_in {
+                tracing::warn!("Unexpected session login failure: {pkcs11_err}");
+                return Err(pkcs11_err);
             }
-            tracing::info!("Logging in session on slot {slot_id}");
-            ctx_read_guard.login(session_handle, CKU_USER, Some(user_pin))?;
         }
         Ok(session_handle)
     } else {

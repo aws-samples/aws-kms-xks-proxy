@@ -395,7 +395,7 @@ async fn get_or_create_session(
                         InternalException.as_axum_error("Session pool exhaustion".to_string())
                     );
                 }
-                match crate::xks_proxy::pkcs11::new_session(status.size == 0) {
+                match crate::xks_proxy::pkcs11::new_session() {
                     // login a new session (slow path)
                     Ok(session_handle) => {
                         tracing::info!(
