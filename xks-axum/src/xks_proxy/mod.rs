@@ -149,8 +149,7 @@ fn remove_session_from_pool_on_error(
 fn is_ckr_fatal(pkcs11_err: &rust_pkcs11::errors::Error) -> bool {
     match pkcs11_err {
         rust_pkcs11::errors::Error::Pkcs11(ck_rv) => {
-            let rv = *ck_rv;
-            rv == CKR_DEVICE_ERROR || rv == CKR_GENERAL_ERROR
+            matches!(*ck_rv, CKR_DEVICE_ERROR | CKR_GENERAL_ERROR)
         }
         _ => false,
     }
