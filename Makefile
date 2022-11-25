@@ -27,6 +27,10 @@ RPMBUILD_SOURCEFILE := $(SOURCESDIR)/$(SOURCE_BUNDLE)
 RPM := $(RPMDIR)/x86_64/$(NAME)-$(VERSION)-$(RELEASE).x86_64.rpm
 DEB := $(NAME)-$(VERSION)-$(RELEASE).deb
 
+ifneq (, $(shell git rev-parse --is-inside-work-tree 2>/dev/null))
+	export GIT_HASH := $(shell git rev-parse --short HEAD)
+endif
+
 .PHONY: release
 release: $(RPM)
 
@@ -36,8 +40,8 @@ $(RPM): $(RPMBUILD_SPECFILE) $(RPMBUILD_SOURCEFILE) $(RPMBUILD_APP) $(RPMBUILD_S
         # and CodeDeploy in appspec.yml
 	ln -s $(RPM) $(APP_FROM_DIR)/aws-kms-xks-proxy.rpm
 
-ifeq (, $(shell which alien))
-	@echo "No command alien found"
+ifeq (, $(shell which alien 2>/dev/null))
+	@echo "INFO: No command alien found"
 else
 ifeq (, $(shell which sudo))
 	alien $(RPM)
@@ -67,6 +71,9 @@ $(RPMBUILD_APP): $(APP_FROM_DIR)/$(NAME)
 	cp $(APP_FROM_DIR)/$(NAME) $@
 
 $(APP_FROM_DIR)/$(NAME):
+ifeq (, $(shell git rev-parse --is-inside-work-tree 2>/dev/null))
+	@echo "INFO: Not a git repository"
+endif
 	cargo build --release --manifest-path=$(PROJECT_DIR)/Cargo.toml
 
 $(RPMBUILD_SERVICE_UNIT):

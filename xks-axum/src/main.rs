@@ -49,9 +49,13 @@ const URI_PATH_DECRYPT: &str = concatcp!(KMS_XKS_V1_PATH, "keys/:key_id/", DECRY
 const URI_PATH_HEALTH: &str = concatcp!(KMS_XKS_V1_PATH, HEALTH);
 // Used for ALB ping
 const URI_PATH_PING: &str = "/ping";
-const CARGO_PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 const CARGO_PKG_NAME: &str = env!("CARGO_PKG_NAME");
-const PING_RESPONSE: &str = concatcp!("pong from ", CARGO_PKG_NAME, " v", CARGO_PKG_VERSION, "\n");
+
+const CARGO_PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
+const GIT_HASH: &str = if let Some(hash) = option_env!("GIT_HASH") { hash } else { "unknown" };
+const VERSION: &str = concatcp!(CARGO_PKG_VERSION, "-", GIT_HASH);
+
+const PING_RESPONSE: &str = concatcp!("pong from ", CARGO_PKG_NAME, " v", VERSION, "\n");
 
 #[tokio::main]
 async fn main() {
@@ -145,7 +149,7 @@ async fn proxy_server(server_config: &ServerConfig) {
         .parse()
         .unwrap_or_else(|_| panic!("unable to parse server ip address {}", server_config.ip));
     let socket_addr = SocketAddr::from((ip_addr, server_config.port));
-    tracing::info!("v{CARGO_PKG_VERSION} listening on {socket_addr} for traffic");
+    tracing::info!("v{VERSION} listening on {socket_addr} for traffic");
     tracing::info!(tcp_keepalive = ?server_config.tcp_keepalive, "TCP keepalive");
     let ka_config = &server_config.tcp_keepalive;
 
