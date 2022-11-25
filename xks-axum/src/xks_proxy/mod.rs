@@ -9,7 +9,7 @@ use ::pkcs11::Ctx;
 use deadpool::unmanaged::{Object, Pool, PoolConfig};
 use http::StatusCode;
 use lazy_static::lazy_static;
-use rust_pkcs11::types::CK_SESSION_HANDLE;
+use rust_pkcs11::types::{CKR_GENERAL_ERROR, CK_SESSION_HANDLE};
 use serde_derive::Serialize;
 use tracing::instrument;
 
@@ -138,18 +138,20 @@ fn remove_session_from_pool_on_error(
     pool: &Pool<CK_SESSION_HANDLE>,
     pkcs11_err: &rust_pkcs11::errors::Error,
 ) {
-    let is_device_error = is_ckr_device_error(pkcs11_err);
-    if is_device_error {
-        tracing::warn!("Removing pkcs11 session from pool due to CKR_DEVICE_ERROR");
-    } else {
-        tracing::warn!("Removing pkcs11 session from pool due to {pkcs11_err}");
-    }
-    remove_session_from_pool(session_handle_object, pool, is_device_error)
+    let is_ckr_fatal = is_ckr_fatal(pkcs11_err);
+    tracing::warn!(
+        is_ckr_fatal,
+        "Removing pkcs11 session from pool due to {pkcs11_err}"
+    );
+    remove_session_from_pool(session_handle_object, pool, is_ckr_fatal)
 }
 
-fn is_ckr_device_error(pkcs11_err: &rust_pkcs11::errors::Error) -> bool {
+fn is_ckr_fatal(pkcs11_err: &rust_pkcs11::errors::Error) -> bool {
     match pkcs11_err {
-        rust_pkcs11::errors::Error::Pkcs11(ck_rv) => *ck_rv == CKR_DEVICE_ERROR,
+        rust_pkcs11::errors::Error::Pkcs11(ck_rv) => {
+            let rv = *ck_rv;
+            rv == CKR_DEVICE_ERROR || rv == CKR_GENERAL_ERROR
+        }
         _ => false,
     }
 }
