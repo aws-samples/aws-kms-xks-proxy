@@ -13,7 +13,8 @@ use deadpool::unmanaged::{Object, Pool};
 use http::StatusCode;
 use oso::ToPolar;
 use pkcs11::types::{
-    CKA_CLASS, CKA_LABEL, CKA_TOKEN, CKM_AES_GCM, CKO_SECRET_KEY, CKR_ENCRYPTED_DATA_INVALID,
+    CKA_CLASS, CKA_LABEL, CKA_TOKEN, CKM_AES_GCM, CKO_SECRET_KEY, CKR_DATA_INVALID,
+    CKR_DATA_LEN_RANGE, CKR_ENCRYPTED_DATA_INVALID, CKR_ENCRYPTED_DATA_LEN_RANGE,
     CKR_GENERAL_ERROR, CKR_KEY_FUNCTION_NOT_PERMITTED, CK_ATTRIBUTE, CK_BYTE, CK_GCM_PARAMS,
     CK_GCM_PARAMS_PTR, CK_MECHANISM, CK_OBJECT_HANDLE, CK_SESSION_HANDLE, CK_TRUE, CK_ULONG,
     CK_VOID_PTR,
@@ -327,7 +328,22 @@ fn before_bubbling_failure(
     (status_code, error_json): (StatusCode, axum::Json<xks_proxy::Error>),
 ) -> (StatusCode, axum::Json<xks_proxy::Error>) {
     if let Some(pkcs11_err) = &error_json.pkcs11_error {
-        xks_proxy::remove_session_from_pool_on_error(session_handle_object, pool, pkcs11_err);
+        let is_remove_session = if let pkcs11::errors::Error::Pkcs11(ck_rv) = pkcs11_err {
+            !matches!(
+                *ck_rv,
+                CKR_KEY_FUNCTION_NOT_PERMITTED
+                    | CKR_ENCRYPTED_DATA_INVALID
+                    | CKR_ENCRYPTED_DATA_LEN_RANGE
+                    | CKR_DATA_INVALID
+                    | CKR_DATA_LEN_RANGE
+            )
+        } else {
+            true
+        };
+
+        if is_remove_session {
+            xks_proxy::remove_session_from_pool_on_error(session_handle_object, pool, pkcs11_err)
+        }
     }
     (status_code, error_json)
 }
@@ -355,10 +371,17 @@ fn pkcs11_to_http_error(pkcs11_error: &pkcs11::errors::Error) -> (ErrorName, Str
 fn decrypt_pkcs11_to_http_error(pkcs11_error: &pkcs11::errors::Error) -> (ErrorName, String) {
     (
         match pkcs11_error {
-            pkcs11::errors::Error::Pkcs11(CKR_KEY_FUNCTION_NOT_PERMITTED) => InvalidKeyUsageException,
-            pkcs11::errors::Error::Pkcs11(CKR_ENCRYPTED_DATA_INVALID)
-            // CKR_GENERAL_ERROR during decryption is most likely caused by inconsistent IV, AAD, or ciphertext.
-            | pkcs11::errors::Error::Pkcs11(CKR_GENERAL_ERROR) => InvalidCiphertextException,
+            pkcs11::errors::Error::Pkcs11(ck_rv) => {
+                match *ck_rv {
+                    CKR_KEY_FUNCTION_NOT_PERMITTED => InvalidKeyUsageException,
+                    CKR_ENCRYPTED_DATA_INVALID
+                    | CKR_ENCRYPTED_DATA_LEN_RANGE
+                    // CKR_GENERAL_ERROR during decryption, for SoftHSMv2 in particular,
+                    // is most likely caused by inconsistent IV, AAD, or ciphertext.
+                    | CKR_GENERAL_ERROR => InvalidCiphertextException,
+                    _ => InternalException,
+                }
+            }
             _ => InternalException,
         },
         pkcs11_error_string(pkcs11_error),
