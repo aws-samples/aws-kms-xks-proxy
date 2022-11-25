@@ -35,6 +35,7 @@ use crate::xks_proxy::ErrorName::{
 };
 use crate::xks_proxy::{Error, XksProxyResult};
 
+use super::is_ckr_fatal;
 use super::pkcs11::P11_CONTEXT;
 
 pub mod decrypt;
@@ -122,7 +123,12 @@ pub(crate) fn get_secret_key_handle(
     xks_key_id: &str,
 ) -> XksProxyResult<CK_OBJECT_HANDLE> {
     find_secret_key(session_handle, xks_key_id).map_err(|pkcs11_error| {
-        KeyNotFoundException.as_axum_pkcs11_error(
+        let error = if is_ckr_fatal(&pkcs11_error) {
+            InternalException
+        } else {
+            KeyNotFoundException
+        };
+        error.as_axum_pkcs11_error(
             format!(
                 "Failed to find secret key {xks_key_id} due to {}",
                 pkcs11_error_string(&pkcs11_error)

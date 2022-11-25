@@ -52,7 +52,11 @@ const URI_PATH_PING: &str = "/ping";
 const CARGO_PKG_NAME: &str = env!("CARGO_PKG_NAME");
 
 const CARGO_PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
-const GIT_HASH: &str = if let Some(hash) = option_env!("GIT_HASH") { hash } else { "unknown" };
+const GIT_HASH: &str = if let Some(hash) = option_env!("GIT_HASH") {
+    hash
+} else {
+    "unknown"
+};
 const VERSION: &str = concatcp!(CARGO_PKG_VERSION, "-", GIT_HASH);
 
 const PING_RESPONSE: &str = concatcp!("pong from ", CARGO_PKG_NAME, " v", VERSION, "\n");
