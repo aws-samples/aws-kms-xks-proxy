@@ -90,7 +90,7 @@ make
 To install the generated [RPM](https://en.wikipedia.org/wiki/RPM_Package_Manager) on a `Centos Linux x86_64` platform:
 ```bash
 # For example
-sudo yum install -y xks-proxy-0.3.0-0.el7.x86_64.rpm
+sudo yum install -y xks-proxy-3.1.1-0.el7.x86_64.rpm
 ```
 
 ### Configuration
