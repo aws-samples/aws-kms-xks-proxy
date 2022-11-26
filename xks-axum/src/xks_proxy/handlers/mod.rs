@@ -395,20 +395,20 @@ fn decrypt_pkcs11_to_http_error(pkcs11_error: &pkcs11::errors::Error) -> (ErrorN
 async fn get_or_create_session(
     pool: &Pool<CK_SESSION_HANDLE>,
 ) -> XksProxyResult<Object<CK_SESSION_HANDLE>> {
-    tracing::trace!("session pool status: {:?}", pool.status());
+    tracing::trace!("Session pool status: {:?}", pool.status());
     loop {
         match pool.try_get() {
             Ok(obj) => {
                 tracing::trace!(
-                    "returning an existing pkcs11 session: {:?}, pool status: {:?}",
+                    "Returning an existing pkcs11 session: {:?}, pool status: {:?}",
                     obj,
                     pool.status()
                 );
                 return Ok(obj);
             } // existing (fast path)
             Err(pool_error) => {
-                tracing::info!(
-                    "no existing session found: {:?} with pool status: {:?}",
+                tracing::warn!(
+                    "No existing session found: {:?} with pool status: {:?}",
                     pool_error,
                     pool.status()
                 );
@@ -422,7 +422,7 @@ async fn get_or_create_session(
                     // login a new session (slow path)
                     Ok(session_handle) => {
                         tracing::info!(
-                            "adding new pkcs11 login session {session_handle} to the pool"
+                            "Adding new pkcs11 login session {session_handle} to the pool"
                         );
                         // it's ok if we can't add to the session pool
                         xks_proxy::add_session_to_pool(session_handle, pool)
