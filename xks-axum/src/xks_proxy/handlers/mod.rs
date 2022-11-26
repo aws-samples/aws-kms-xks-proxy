@@ -36,8 +36,7 @@ use crate::xks_proxy::ErrorName::{
 };
 use crate::xks_proxy::{Error, XksProxyResult};
 
-use super::is_ckr_fatal;
-use super::pkcs11::P11_CONTEXT;
+use super::pkcs11::{is_ckr_fatal, P11_CONTEXT};
 
 pub mod decrypt;
 pub mod encrypt;
