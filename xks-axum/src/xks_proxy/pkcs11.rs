@@ -324,3 +324,14 @@ mod tests {
         assert_eq!("CKK_CAST128", super::pkcs11_keytype(CKK_CAST5));
     }
 }
+
+/// Returns true if the PKCS#11 error is considered so catastrophic that
+/// we cannot do much to recover other than resetting the PKCS11 context;
+/// false otherwise.
+pub fn is_ckr_fatal(pkcs11_err: &rust_pkcs11::errors::Error) -> bool {
+    if let rust_pkcs11::errors::Error::Pkcs11(ck_rv) = pkcs11_err {
+        matches!(*ck_rv, CKR_DEVICE_ERROR | CKR_GENERAL_ERROR)
+    } else {
+        false
+    }
+}

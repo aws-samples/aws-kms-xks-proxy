@@ -14,9 +14,9 @@ use tracing::{info_span, instrument, Instrument};
 use crate::xks_proxy::handlers::pkcs11_to_xksproxy_error;
 use crate::xks_proxy::handlers::REQUEST_META_DATA;
 use crate::xks_proxy::pkcs11::{
-    pkcs11_context_read_timeout_error, pkcs11_error_string, P11_CONTEXT,
+    is_ckr_fatal, pkcs11_context_read_timeout_error, pkcs11_error_string, P11_CONTEXT,
 };
-use crate::xks_proxy::{handlers, is_ckr_fatal, reset_p11_context, XksProxyResult, SETTINGS};
+use crate::xks_proxy::{handlers, reset_p11_context, XksProxyResult, SETTINGS};
 use crate::HEALTH;
 
 // Defined per XKS Proxy API spec.

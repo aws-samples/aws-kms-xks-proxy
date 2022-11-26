@@ -4,18 +4,19 @@
 extern crate pkcs11 as rust_pkcs11;
 use std::time::Duration;
 
-use ::pkcs11::types::CKR_DEVICE_ERROR;
 use ::pkcs11::Ctx;
 use deadpool::unmanaged::{Object, Pool, PoolConfig};
 use http::StatusCode;
 use lazy_static::lazy_static;
-use rust_pkcs11::types::{CKR_GENERAL_ERROR, CK_SESSION_HANDLE};
+use rust_pkcs11::types::CK_SESSION_HANDLE;
 use serde_derive::Serialize;
 use tracing::instrument;
 
 use crate::settings::SETTINGS;
 use crate::xks_proxy;
-use crate::xks_proxy::pkcs11::{pkcs11_context_read_timeout_msg, pkcs11_error_string, P11_CONTEXT};
+use crate::xks_proxy::pkcs11::{
+    is_ckr_fatal, pkcs11_context_read_timeout_msg, pkcs11_error_string, P11_CONTEXT,
+};
 
 pub mod handlers;
 pub mod pkcs11;
@@ -146,15 +147,6 @@ fn remove_session_from_pool_on_error(
     remove_session_from_pool(session_handle_object, pool, is_ckr_fatal)
 }
 
-fn is_ckr_fatal(pkcs11_err: &rust_pkcs11::errors::Error) -> bool {
-    match pkcs11_err {
-        rust_pkcs11::errors::Error::Pkcs11(ck_rv) => {
-            matches!(*ck_rv, CKR_DEVICE_ERROR | CKR_GENERAL_ERROR)
-        }
-        _ => false,
-    }
-}
-
 // !!WARNING!!  All read locks acquired on P11_CONTEXT prior to calling this function must be dropped,
 // or else it will cause dead lock.
 #[instrument(skip_all)]
@@ -178,7 +170,7 @@ fn remove_session_from_pool(
 fn reset_p11_context() {
     // We don't need to care about timing out on acquiring the write lock,
     // since the HSM is in a non-functional state anyway.
-    tracing::info!("Resetting pkcs11 context due to device failure.  Acquiring a write lock ...");
+    tracing::warn!("Resetting pkcs11 context due to device failure.  Acquiring a write lock ...");
     let mut ctx_write_guard = P11_CONTEXT.write();
     tracing::info!("Write lock acquired.  Clearing the pkcs11 session pool ...");
 
@@ -203,7 +195,7 @@ fn reset_p11_context() {
             pkcs11_error_string(&pkcs11_error)
         );
     }
-    tracing::info!("Creating and initializing a new pkcs11 context");
+    tracing::warn!("Creating and initializing a new pkcs11 context");
     *ctx_write_guard = Ctx::new_and_initialize(crate::xks_proxy::pkcs11::pkcs11_module_name())
         .expect("failed to create and initialize the pkcs11 context");
     tracing::info!("Done resetting pkcs11 context");
@@ -211,7 +203,7 @@ fn reset_p11_context() {
 
 fn do_close_session(session_handle: CK_SESSION_HANDLE) {
     // This function allows the read lock to get dropped immediately after use
-    tracing::info!("closing pkcs11 session {session_handle}");
+    tracing::warn!("Closing pkcs11 session {session_handle}");
     if let Some(ctx_read_guard) = P11_CONTEXT.try_read_for(Duration::from_millis(
         SETTINGS.pkcs11.context_read_timeout_milli,
     )) {
