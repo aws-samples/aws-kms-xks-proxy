@@ -1627,15 +1627,15 @@ pub type CK_FUNCTION_LIST_PTR_PTR = *mut CK_FUNCTION_LIST_PTR;
 
 /// CK_CREATEMUTEX is an application callback for creating a
 /// mutex object
-pub type CK_CREATEMUTEX = Option<extern "C" fn(CK_VOID_PTR_PTR) -> CK_RV>;
+pub type CK_CREATEMUTEX = Option<unsafe extern "C" fn(CK_VOID_PTR_PTR) -> CK_RV>;
 /// CK_DESTROYMUTEX is an application callback for destroying a
 /// mutex object
-pub type CK_DESTROYMUTEX = Option<extern "C" fn(CK_VOID_PTR) -> CK_RV>;
+pub type CK_DESTROYMUTEX = Option<unsafe extern "C" fn(CK_VOID_PTR) -> CK_RV>;
 /// CK_LOCKMUTEX is an application callback for locking a mutex
-pub type CK_LOCKMUTEX = Option<extern "C" fn(CK_VOID_PTR) -> CK_RV>;
+pub type CK_LOCKMUTEX = Option<unsafe extern "C" fn(CK_VOID_PTR) -> CK_RV>;
 /// CK_UNLOCKMUTEX is an application callback for unlocking a
 /// mutex
-pub type CK_UNLOCKMUTEX = Option<extern "C" fn(CK_VOID_PTR) -> CK_RV>;
+pub type CK_UNLOCKMUTEX = Option<unsafe extern "C" fn(CK_VOID_PTR) -> CK_RV>;
 
 cryptoki_aligned! {
   /// CK_C_INITIALIZE_ARGS provides the optional arguments to

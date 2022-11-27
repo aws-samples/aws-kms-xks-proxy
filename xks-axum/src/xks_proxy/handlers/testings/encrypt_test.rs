@@ -21,7 +21,7 @@ use crate::xks_proxy::pkcs11::pkcs11_error_string;
 #[allow(dead_code)]
 fn test_encrypt_init() {
     let path_buf = PathBuf::from("/opt/cloudhsm/lib/libcloudhsm_pkcs11.so");
-    let ctx = Ctx::new_and_initialize(path_buf).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(path_buf).unwrap() };
     let slot_ids = ctx.get_slot_list(false).unwrap();
     println!("slot_ids: {:?}", slot_ids);
 
