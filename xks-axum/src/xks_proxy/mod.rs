@@ -15,7 +15,8 @@ use tracing::instrument;
 use crate::settings::SETTINGS;
 use crate::xks_proxy;
 use crate::xks_proxy::pkcs11::{
-    is_ckr_fatal, pkcs11_context_read_timeout_msg, pkcs11_error_string, P11_CONTEXT,
+    is_ckr_device_error, is_ckr_fatal, pkcs11_context_read_timeout_msg, pkcs11_error_string,
+    P11_CONTEXT,
 };
 
 pub mod handlers;
@@ -144,7 +145,7 @@ fn remove_session_from_pool_on_error(
         is_ckr_fatal,
         "Removing pkcs11 session from pool due to {pkcs11_err}"
     );
-    remove_session_from_pool(session_handle_object, pool, is_ckr_fatal)
+    remove_session_from_pool(session_handle_object, pool, is_ckr_device_error(pkcs11_err))
 }
 
 // !!WARNING!!  All read locks acquired on P11_CONTEXT prior to calling this function must be dropped,
@@ -155,10 +156,10 @@ fn remove_session_from_pool(
     pool: &Pool<CK_SESSION_HANDLE>,
     is_device_error: bool,
 ) {
-    let session_handle = Object::take(session_handle_object);
+    do_close_session(*session_handle_object);
+    let _ = Object::take(session_handle_object);
     let status = pool.status();
     tracing::info!("pool status after session removal: {:?}", status);
-    do_close_session(session_handle);
     if is_device_error && status.size == 0 {
         reset_p11_context();
     }
@@ -196,8 +197,10 @@ fn reset_p11_context() {
         );
     }
     tracing::warn!("Creating and initializing a new pkcs11 context");
-    *ctx_write_guard = Ctx::new_and_initialize(crate::xks_proxy::pkcs11::pkcs11_module_name())
-        .expect("failed to create and initialize the pkcs11 context");
+    *ctx_write_guard = unsafe {
+        Ctx::new_and_initialize(crate::xks_proxy::pkcs11::pkcs11_module_name())
+            .expect("failed to create and initialize the pkcs11 context")
+    };
     tracing::info!("Done resetting pkcs11 context");
 }
 

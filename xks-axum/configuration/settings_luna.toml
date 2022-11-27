@@ -5,7 +5,7 @@
 # It assumes you have installed and set up the necessary Thales Luna HSM client side library.
 [server]
 ip = "0.0.0.0"
-port = 80
+port = 443
 # (Optional) port used for http ping.  Defaults to 80.
 # port_http_ping = 80
 region = "us-east-1"
@@ -46,7 +46,6 @@ rotation_kind = "HOURLY"
 [security]
 # is_sigv4_auth_enabled must be set to true for production.
 is_sigv4_auth_enabled = true
-# is_tls_enabled must be set to true for production.
 is_tls_enabled = true
 is_mtls_enabled = false
 

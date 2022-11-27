@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 Name:           xks-proxy
-Version:        3.1.1
+Version:        3.1.2
 
 Release:        0%{?dist}
 Summary:        AWS External Keystore (XKS) Proxy Service
@@ -45,6 +45,18 @@ systemctl disable xks-proxy.service
 systemctl disable xks-proxy_cleanlogs.timer
 
 %changelog
+* Mon Nov 28 2022 Hanson Char <hchar@amazon.com> - 3.1.2
+- Initialize pkcs11 context with lock functions and upon failure would
+  retry pkcs11 initialization without callback functions
+- Fix memory corruption bugs in pkcs11 crate in context initialization
+- Fix bug in closing pkcs11 session
+- Mark Ctx::new_and_initialize and Ctx::initialize as unsafe
+- Fix doc inconsistency
+- Log pool exhaustion as a warning instead of info
+- Avoid removing session from pool unnecessarily
+- Always attempt to login when creating a new session
+- Respond with InternalException instead of KeyNotFoundException upon CKR_GENERAL_ERROR.
+- Include git hash in version + remove noise if command alien is not found
 * Tue Nov 22 2022 Hanson Char <hchar@amazon.com> - 3.1.1
 - Always return ValidationException upon invalid JSON payload
 * Wed Nov 09 2022 Hanson Char <hchar@amazon.com> - 3.1.0
