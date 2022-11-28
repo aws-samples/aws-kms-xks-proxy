@@ -26,7 +26,7 @@ curl localhost/ping
 ```
 You should see the response:
 
->pong from xks-proxy v3.1.1
+>pong from xks-proxy v3.2.0
 
 which indicates the server is now up and running.  You can monitor the logs with:
 ```bash
@@ -90,7 +90,7 @@ make
 To install the generated [RPM](https://en.wikipedia.org/wiki/RPM_Package_Manager) on a `Centos Linux x86_64` platform:
 ```bash
 # For example
-sudo yum install -y xks-proxy-3.1.1-0.el7.x86_64.rpm
+sudo yum install -y xks-proxy-3.2.0-0.el7.x86_64.rpm
 ```
 
 ### Configuration

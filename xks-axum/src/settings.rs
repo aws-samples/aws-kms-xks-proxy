@@ -143,6 +143,13 @@ pub struct LimitsConfig {
 pub struct HsmCapabilitiesConfig {
     pub can_generate_iv: bool,
     pub is_zero_iv_required: bool,
+    pub can_close_session: Option<bool>,
+}
+
+impl HsmCapabilitiesConfig {
+    pub fn can_close_session(&self) -> bool {
+        self.can_close_session.unwrap_or(true)
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]

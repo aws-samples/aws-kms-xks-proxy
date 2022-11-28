@@ -48,8 +48,7 @@ rotation_kind = "HOURLY"
 [security]
 # is_sigv4_auth_enabled must be set to true for production.
 is_sigv4_auth_enabled = true
-# is_tls_enabled must be set to true for production.
-is_tls_enabled = true
+is_tls_enabled = false
 is_mtls_enabled = false
 
 # (Optional) secondary authorization used
@@ -122,3 +121,9 @@ max_aad_in_base64 = 16384
 # So the solution is to use SoftHSMv2 to generate random for the IV.
 can_generate_iv = false
 is_zero_iv_required = false
+
+# This should be always true in theory.
+# In practice, enabling this when SoftHSMv2 2.6.1 is in use would lead to crashes
+# in a concurrent environment.
+# Defaults to true if not specified.
+can_close_session = false

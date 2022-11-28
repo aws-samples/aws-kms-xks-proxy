@@ -326,22 +326,28 @@ fn before_bubbling_failure(
     pool: &Pool<CK_SESSION_HANDLE>,
     (status_code, error_json): (StatusCode, axum::Json<xks_proxy::Error>),
 ) -> (StatusCode, axum::Json<xks_proxy::Error>) {
-    if let Some(pkcs11_err) = &error_json.pkcs11_error {
-        let is_remove_session = if let pkcs11::errors::Error::Pkcs11(ck_rv) = pkcs11_err {
-            !matches!(
-                *ck_rv,
-                CKR_KEY_FUNCTION_NOT_PERMITTED
-                    | CKR_ENCRYPTED_DATA_INVALID
-                    | CKR_ENCRYPTED_DATA_LEN_RANGE
-                    | CKR_DATA_INVALID
-                    | CKR_DATA_LEN_RANGE
-            )
-        } else {
-            true
-        };
+    if SETTINGS.hsm_capabilities.can_close_session() {
+        if let Some(pkcs11_err) = &error_json.pkcs11_error {
+            let is_remove_session = if let pkcs11::errors::Error::Pkcs11(ck_rv) = pkcs11_err {
+                !matches!(
+                    *ck_rv,
+                    CKR_KEY_FUNCTION_NOT_PERMITTED
+                        | CKR_ENCRYPTED_DATA_INVALID
+                        | CKR_ENCRYPTED_DATA_LEN_RANGE
+                        | CKR_DATA_INVALID
+                        | CKR_DATA_LEN_RANGE
+                )
+            } else {
+                true
+            };
 
-        if is_remove_session {
-            xks_proxy::remove_session_from_pool_on_error(session_handle_object, pool, pkcs11_err)
+            if is_remove_session {
+                xks_proxy::remove_session_from_pool_on_error(
+                    session_handle_object,
+                    pool,
+                    pkcs11_err,
+                )
+            }
         }
     }
     (status_code, error_json)
