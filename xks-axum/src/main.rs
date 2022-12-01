@@ -8,7 +8,6 @@ use std::str::FromStr;
 use std::{net::SocketAddr, sync::Arc};
 
 use axum::extract::Extension;
-use axum::handler::Handler;
 use axum::middleware;
 use axum::routing::get;
 use axum::{routing::post, Router};
@@ -108,7 +107,7 @@ async fn proxy_server(server_config: &ServerConfig) {
     tracing::trace!("Number of external key stores: {}", XKSS.len());
     router = router
         .route(URI_PATH_PING, get(|| async { PING_RESPONSE }))
-        .fallback(fallback.into_service());
+        .fallback(fallback);
     let security_config = &SETTINGS.security;
     let is_sigv4_enabled = security_config.is_sigv4_auth_enabled;
     if is_sigv4_enabled {
@@ -195,7 +194,7 @@ async fn proxy_server(server_config: &ServerConfig) {
 async fn http_health_check_server(server_config: &ServerConfig) {
     let health_check_router = Router::new()
         .route(URI_PATH_PING, get(|| async { PING_RESPONSE }))
-        .fallback(fallback.into_service());
+        .fallback(fallback);
     let ip_addr: IpAddr = server_config
         .ip
         .parse()

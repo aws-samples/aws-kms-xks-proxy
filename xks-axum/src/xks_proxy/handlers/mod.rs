@@ -7,10 +7,12 @@ use std::mem;
 use std::time::Duration;
 
 use axum::extract::rejection::JsonRejection;
-use axum::extract::{FromRequest, RequestParts};
+use axum::extract::FromRequest;
+// use axum::extract::{FromRequest, RequestParts};
+use axum::body::HttpBody;
 use axum::{async_trait, BoxError};
 use deadpool::unmanaged::{Object, Pool};
-use http::StatusCode;
+use http::{Request, StatusCode};
 use oso::ToPolar;
 use pkcs11::types::{
     CKA_CLASS, CKA_LABEL, CKA_TOKEN, CKM_AES_GCM, CKO_SECRET_KEY, CKR_DATA_INVALID,
@@ -471,22 +473,25 @@ pub mod testings;
 
 // Used to customize error response upon request validation failure.
 // We define our own `Json` extractor that customizes the error from `axum::Json`
-// Source: https://docs.rs/axum/latest/axum/extract/index.html#customizing-extractor-responses
-pub struct Json<T>(T);
+// Sources:
+// https://docs.rs/axum/latest/axum/extract/index.html#customizing-extractor-responses
+// https://github.com/tokio-rs/axum/blob/main/axum/src/json.rs
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Json<T>(pub T);
 
 #[async_trait]
-impl<B, T> FromRequest<B> for Json<T>
+impl<T, S, B> FromRequest<S, B> for Json<T>
 where
-    // these trait bounds are copied from `impl FromRequest for axum::Json`
     T: DeserializeOwned,
-    B: axum::body::HttpBody + Send,
+    B: HttpBody + Send + 'static,
     B::Data: Send,
     B::Error: Into<BoxError>,
+    S: Send + Sync,
 {
     type Rejection = (StatusCode, axum::Json<Error>);
 
-    async fn from_request(req: &mut RequestParts<B>) -> Result<Self, Self::Rejection> {
-        match axum::Json::<T>::from_request(req).await {
+    async fn from_request(req: Request<B>, state: &S) -> Result<Self, Self::Rejection> {
+        match axum::Json::<T>::from_request(req, state).await {
             Ok(value) => Ok(Self(value.0)),
             Err(rejection) => {
                 // convert the error from `axum::Json` into whatever we want
