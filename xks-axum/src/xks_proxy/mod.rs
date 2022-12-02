@@ -4,7 +4,6 @@
 extern crate pkcs11 as rust_pkcs11;
 use std::time::Duration;
 
-use ::pkcs11::Ctx;
 use deadpool::unmanaged::{Object, Pool, PoolConfig};
 use http::StatusCode;
 use lazy_static::lazy_static;
@@ -197,10 +196,7 @@ fn reset_p11_context() {
         );
     }
     tracing::warn!("Creating and initializing a new pkcs11 context");
-    *ctx_write_guard = unsafe {
-        Ctx::new_and_initialize(crate::xks_proxy::pkcs11::pkcs11_module_name())
-            .expect("failed to create and initialize the pkcs11 context")
-    };
+    *ctx_write_guard = unsafe { pkcs11::new_and_initialize() };
     tracing::info!("Done resetting pkcs11 context");
 }
 
