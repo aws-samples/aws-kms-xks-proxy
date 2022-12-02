@@ -113,26 +113,26 @@ unsafe extern "C" fn unlock_mutex(pcontainer: CK_VOID_PTR) -> CK_RV {
 }
 
 lazy_static! {
-    pub static ref P11_CONTEXT: RwLock<Ctx> = RwLock::new({
-        let filename = crate::xks_proxy::pkcs11::pkcs11_module_name();
-        let mut ctx = Ctx::new(filename).expect("Failed to create the pkcs11 context");
-        let args = CK_C_INITIALIZE_ARGS {
-            flags: CKF_OS_LOCKING_OK,
-            CreateMutex: Some(create_mutex_container),
-            DestroyMutex: Some(destroy_mutex_container),
-            LockMutex: Some(lock_mutex),
-            UnlockMutex: Some(unlock_mutex),
-            pReserved: ptr::null_mut(),
-        };
-        unsafe {
-            if let Err(err) = ctx.initialize(Some(args)) {
-                tracing::warn!("Failed to initialize the pkcs11 context with mutex callback functions due to {}.  Retrying initialization without callback functions.", err);
-                ctx.initialize(None)
-                    .expect("Failed to initialize the pkcs11 context");
-            }
-        }
-        ctx
-    });
+    pub static ref P11_CONTEXT: RwLock<Ctx> = RwLock::new(unsafe { new_and_initialize() });
+}
+
+pub unsafe fn new_and_initialize() -> Ctx {
+    let filename = crate::xks_proxy::pkcs11::pkcs11_module_name();
+    let mut ctx = Ctx::new(filename).expect("Failed to create the pkcs11 context");
+    let args = CK_C_INITIALIZE_ARGS {
+        flags: CKF_OS_LOCKING_OK,
+        CreateMutex: Some(create_mutex_container),
+        DestroyMutex: Some(destroy_mutex_container),
+        LockMutex: Some(lock_mutex),
+        UnlockMutex: Some(unlock_mutex),
+        pReserved: ptr::null_mut(),
+    };
+    if let Err(err) = ctx.initialize(Some(args)) {
+        tracing::warn!("Failed to initialize the pkcs11 context with mutex callback functions due to {}.  Retrying initialization without callback functions.", err);
+        ctx.initialize(None)
+            .expect("Failed to initialize the pkcs11 context");
+    }
+    ctx
 }
 
 #[instrument(skip_all)]
