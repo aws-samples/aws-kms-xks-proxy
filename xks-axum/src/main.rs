@@ -85,7 +85,7 @@ async fn proxy_server(server_config: &ServerConfig) {
     // https://docs.rs/axum-extra/0.1.2/axum_extra/middleware/middleware_fn/fn.from_fn.html
     let mut router = Router::new();
     for uri_path_prefix in XKSS.keys() {
-        tracing::trace!(uri_path_prefix = uri_path_prefix, "Adding url paths");
+        tracing::trace!(uri_path_prefix, "Adding url paths");
         router = router
             .route(
                 &format!("{uri_path_prefix}{URI_PATH_HEALTH}"),
@@ -109,38 +109,24 @@ async fn proxy_server(server_config: &ServerConfig) {
         .route(URI_PATH_PING, get(|| async { PING_RESPONSE }))
         .fallback(fallback);
     let security_config = &SETTINGS.security;
-    let is_sigv4_enabled = security_config.is_sigv4_auth_enabled;
-    if is_sigv4_enabled {
-        tracing::info!("sigv4 is enabled");
+
+    tracing::info!(is_sigv4_enabled = security_config.is_sigv4_auth_enabled,
+        is_tls_enabled = security_config.is_tls_enabled,
+        is_mtls_enabled = security_config.is_mtls_enabled,
+        secondary_auth = ?security_config.secondary_auth);
+
+    if security_config.is_sigv4_auth_enabled {
         router = router.route_layer(middleware::from_fn(sigv4_auth));
     } else {
-        tracing::warn!("sigv4 is disabled. This should only be the case in a test environment.");
         router = router.route_layer(Extension("".to_string()));
     }
 
     router = router.layer(TraceLayer::new_for_http());
 
-    if security_config.is_tls_enabled {
-        tracing::info!("TLS is enabled");
-    } else {
-        tracing::warn!("TLS is disabled. This should only be the case in a test environment.");
-    }
-
-    if security_config.is_mtls_enabled {
-        tracing::info!("mTLS is enabled");
-    } else {
-        tracing::warn!("mTLS is disabled.");
-    }
-
-    match &security_config.secondary_auth {
-        Some(scheme) => tracing::info!(scheme = ?scheme, "Secondary authorization"),
-        None => tracing::info!("Secondary authorization is not configured."),
-    }
-
     if server_config.ciphertext_metadata_b64.is_some() {
         // CIPHERTEXT_METADATA.len() eagerly triggers validation of the configuration
         tracing::info!(
-            "Ciphertext Metadata is configured with {} bytes.",
+            "Ciphertext Metadata has length of {} bytes.",
             CIPHERTEXT_METADATA.len()
         );
     } else {
@@ -152,9 +138,15 @@ async fn proxy_server(server_config: &ServerConfig) {
         .parse()
         .unwrap_or_else(|_| panic!("unable to parse server ip address {}", server_config.ip));
     let socket_addr = SocketAddr::from((ip_addr, server_config.port));
+
+    let ka = &server_config.tcp_keepalive;
+
+    tracing::info!(
+        secs = ?ka.tcp_keepalive_secs,
+        interval_secs = ?ka.tcp_keepalive_interval_secs,
+        retries = ?ka.tcp_keepalive_retries,
+        "TCP Keepalive");
     tracing::info!("v{VERSION} listening on {socket_addr} for traffic");
-    tracing::info!(tcp_keepalive = ?server_config.tcp_keepalive, "TCP keepalive");
-    let ka_config = &server_config.tcp_keepalive;
 
     if security_config.is_tls_enabled {
         let rustls_server_config: rustls::ServerConfig = tls::make_tls_server_config(
@@ -168,9 +160,9 @@ async fn proxy_server(server_config: &ServerConfig) {
         axum_server::bind_rustls(socket_addr, rustls_config)
             .addr_incoming_config(
                 AddrIncomingConfig::default()
-                    .tcp_keepalive(ka_config.tcp_keepalive_secs)
-                    .tcp_keepalive_interval(ka_config.tcp_keepalive_interval_secs)
-                    .tcp_keepalive_retries(ka_config.tcp_keepalive_retries)
+                    .tcp_keepalive(ka.tcp_keepalive_secs)
+                    .tcp_keepalive_interval(ka.tcp_keepalive_interval_secs)
+                    .tcp_keepalive_retries(ka.tcp_keepalive_retries)
                     .build(),
             )
             .serve(router.into_make_service())
@@ -180,9 +172,9 @@ async fn proxy_server(server_config: &ServerConfig) {
         axum_server::bind(socket_addr)
             .addr_incoming_config(
                 AddrIncomingConfig::default()
-                    .tcp_keepalive(ka_config.tcp_keepalive_secs)
-                    .tcp_keepalive_interval(ka_config.tcp_keepalive_interval_secs)
-                    .tcp_keepalive_retries(ka_config.tcp_keepalive_retries)
+                    .tcp_keepalive(ka.tcp_keepalive_secs)
+                    .tcp_keepalive_interval(ka.tcp_keepalive_interval_secs)
+                    .tcp_keepalive_retries(ka.tcp_keepalive_retries)
                     .build(),
             )
             .serve(router.into_make_service())
@@ -243,6 +235,7 @@ fn tracing_init() -> Option<WorkerGuard> {
     if is_stdout_writer_enabled {
         let layer = tracing_subscriber::fmt::layer()
             .with_thread_names(true)
+            .with_line_number(true)
             .with_filter(LevelFilter::from_level(level))
             .boxed();
         layers.push(layer);
@@ -267,6 +260,7 @@ fn tracing_init() -> Option<WorkerGuard> {
 
         let layer = tracing_subscriber::fmt::layer()
             .with_thread_names(true)
+            .with_line_number(true)
             .with_target(true)
             .with_writer(non_blocking)
             .with_filter(LevelFilter::from_level(level))
@@ -279,11 +273,11 @@ fn tracing_init() -> Option<WorkerGuard> {
     };
 
     tracing_subscriber::registry().with(layers).init();
-    tracing::info!("Tracing level: {level}");
+    tracing::info!(level = level_string, is_file_writer_enabled, "Tracing");
     if is_file_writer_enabled {
         tracing::info!(
             rotation_kind = tracing_config.rotation_kind.as_ref().unwrap(),
-            "Tracing file rotation"
+            "Tracing file"
         );
     }
     guard
