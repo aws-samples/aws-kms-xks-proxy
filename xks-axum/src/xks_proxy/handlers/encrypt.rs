@@ -367,8 +367,12 @@ fn do_encrypt_init(
             let (error_name, pkcs11_errmsg) = pkcs11_to_http_error(&pkcs11_error);
             tracing::trace!("calling ctx.get_session_info");
             if let Ok(session_info) = ctx_read_guard.get_session_info(session_handle) {
-                tracing::warn!("ulDeviceError: {}", session_info.ulDeviceError);
-                tracing::warn!("session_info: {session_info:?}");
+                tracing::warn!(
+                    ?session_info,
+                    pkcs11_errmsg,
+                    ?mechanism,
+                    "Failed to encrypt:"
+                );
             }
             return Err(error_name.as_axum_pkcs11_error(
                 format!(
