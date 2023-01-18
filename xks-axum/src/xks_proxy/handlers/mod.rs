@@ -17,9 +17,9 @@ use oso::ToPolar;
 use pkcs11::types::{
     CKA_CLASS, CKA_LABEL, CKA_TOKEN, CKM_AES_GCM, CKO_SECRET_KEY, CKR_DATA_INVALID,
     CKR_DATA_LEN_RANGE, CKR_ENCRYPTED_DATA_INVALID, CKR_ENCRYPTED_DATA_LEN_RANGE,
-    CKR_GENERAL_ERROR, CKR_KEY_FUNCTION_NOT_PERMITTED, CK_ATTRIBUTE, CK_BYTE, CK_GCM_PARAMS,
-    CK_GCM_PARAMS_PTR, CK_MECHANISM, CK_OBJECT_HANDLE, CK_SESSION_HANDLE, CK_TRUE, CK_ULONG,
-    CK_VOID_PTR,
+    CKR_FUNCTION_FAILED, CKR_GENERAL_ERROR, CKR_KEY_FUNCTION_NOT_PERMITTED, CK_ATTRIBUTE, CK_BYTE,
+    CK_GCM_PARAMS, CK_GCM_PARAMS_PTR, CK_MECHANISM, CK_OBJECT_HANDLE, CK_SESSION_HANDLE, CK_TRUE,
+    CK_ULONG, CK_VOID_PTR,
 };
 use ring::digest;
 use serde::de::DeserializeOwned;
@@ -377,6 +377,8 @@ fn decrypt_pkcs11_to_http_error(pkcs11_error: &pkcs11::errors::Error) -> (ErrorN
                     CKR_KEY_FUNCTION_NOT_PERMITTED => InvalidKeyUsageException,
                     CKR_ENCRYPTED_DATA_INVALID
                     | CKR_ENCRYPTED_DATA_LEN_RANGE
+                    // CKR_FUNCTION_FAILED is reported to be returned in nShield
+                    | CKR_FUNCTION_FAILED
                     // CKR_GENERAL_ERROR during decryption, for SoftHSMv2 in particular,
                     // is most likely caused by inconsistent IV, AAD, or ciphertext.
                     | CKR_GENERAL_ERROR => InvalidCiphertextException,
