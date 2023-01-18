@@ -1,0 +1,120 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# This is a sample xks-proxy configuration file of using nShield in a Linux environment.
+# It assumes you have installed and set up the necessary nShield HSM client side library.
+[server]
+ip = "0.0.0.0"
+port = 80
+# (Optional) port used for http ping.  Defaults to 80.
+# port_http_ping = 80
+region = "us-east-1"
+service = "kms-xks-proxy"
+# Optional configuration of ciphertext metadata in base 64 encoding
+# ciphertext_metadata_b64 = "djAuMC4x"
+
+# Configuration of TCP keepalive probes
+# https://en.wikipedia.org/wiki/Keepalive
+[server.tcp_keepalive]
+# (Optional) Number of seconds between two keepalive transmissions in idle condition
+# No configuration means TCP keepalive probes is disabled.
+tcp_keepalive_secs = 60
+# (Optional) Number of retransmissions to be carried out before declaring that remote end is not available
+tcp_keepalive_retries = 3
+# (Optional) Number of seconds between two successive keepalive retransmissions,
+# if acknowledgement to the previous keepalive transmission is not received
+tcp_keepalive_interval_secs = 1
+
+[tracing]
+# Used to control logging to stdout
+is_stdout_writer_enabled = true
+# Used to control logging to a file (rotated hourly)
+is_file_writer_enabled = true
+
+# Supported trace levels: TRACE, DEBUG, INFO, WARN, ERROR
+# Should be set to INFO for production.
+level = "DEBUG"
+
+# Directory and file prefix, applicable only if is_file_writer_enabled = true
+directory = "/var/local/xks-proxy/logs"
+file_prefix = "xks-proxy.log"
+# Supported rotation: MINUTELY, HOURLY, DAILY, NEVER
+# Should never be set to NEVER in production.
+# Adjust the timer calender of xks-proxy_cleanlogs.timer via "systemctl edit xks-proxy_cleanlogs.timer" as needed.
+rotation_kind = "HOURLY"
+
+[security]
+# is_sigv4_auth_enabled must be set to true for production.
+is_sigv4_auth_enabled = true
+is_tls_enabled = false
+is_mtls_enabled = false
+
+# (Optional) secondary authorization used
+#secondary_auth = "Oso"
+
+#[security.oso]
+#polar_file_path = "configuration/oso.polar"
+
+[tls]
+# Applicable when is_tls_enabled = true
+tls_cert_pem = ""
+tls_key_pem = ""
+# Applicable when is_mtls_enabled = true
+mtls_client_ca_pem = ""
+mtls_client_dns_name = ""
+
+[[external_key_stores]]
+# Each uri path prefix defines a logical xks, and therefore every uri path prefix must be unique.
+# A Proxy URI path prefix is either empty, or it must have between 9 and 117 characters.
+# Valid characters are a-z, A-Z, 0-9, /, - (hyphen), and _ (underscore)
+uri_path_prefix = ""
+# Access key ID must have between 20 and 30 characters. Valid characters are uppercase A-Z and 2-7
+sigv4_access_key_id = ""
+# Secret access key must have between 43 and 64 characters. Valid characters are a-z, A-Z, 0-9, /, +, and =
+sigv4_secret_access_key = ""
+# Each xks key id must exist in the underlying HSM with the corresponding pkcs11 label
+xks_key_id_set = ["foo", "cat", "dog"]
+
+[[external_key_stores]]
+uri_path_prefix = "/example/uri/path/prefix"
+# Access key ID must have between 20 and 30 characters. Valid characters are uppercase A-Z and 2-7
+sigv4_access_key_id = "BETWEEN2TENAND3TENCHARACTERS"
+# Secret access key must have between 43 and 64 characters. Valid characters are a-z, A-Z, 0-9, /, +, and =
+sigv4_secret_access_key = "PleaseReplaceThisWithSomeSecretOfLength43To64"
+xks_key_id_set = ["foo", "bar"]
+
+[pkcs11]
+session_pool_max_size = 30
+session_pool_timeout_milli = 0
+# Set to true for testing purposes only
+session_eager_close = false
+user_pin = "replaceme"
+# Default value for the PKCS11_HSM_MODULE environment variable that
+# specifies the file path to the PKCS#11 library.
+# PKCS11_HSM_MODULE = "/local/centos/pkcs11-logger/build/linux/pkcs11-logger-x64.so"
+PKCS11_HSM_MODULE = "/opt/nfast/toolkits/pkcs11/libcknfast.so"
+# Number of milli seconds before a read access to the pkcs#11 context times out
+# Used to prevent a hypothetical dead lock scenario when the pkcs#11 context needs to be reset upon HSM device failure.
+context_read_timeout_milli = 10
+
+# [pkcs11_logger]
+# https://github.com/Pkcs11Interop/pkcs11-logger
+# Default value for the PKCS11_LOGGER_LIBRARY_PATH environment variable that
+# specifies the path to the original PKCS#11 library.
+# PKCS11_LOGGER_LIBRARY_PATH = "/opt/nfast/toolkits/pkcs11/libcknfast.so"
+# Default value for the PKCS11_LOGGER_LOG_FILE_PATH environment variable that
+# specifies the path to the log file.
+# PKCS11_LOGGER_LOG_FILE_PATH = "/var/local/xks-proxy/logs/pkcs11-logger-output.log"
+# Default value for the PKCS11_LOGGER_FLAGS environment variable that
+# specifies a bit mask that controls multiple logger features.
+# PKCS11_LOGGER_FLAGS = "0"
+
+[limits]
+max_plaintext_in_base64 = 8192
+# AAD in binary must not exceed 65,535 bytes as limited by the 2-byte AAD length requirement in the XKSProxy API spec
+max_aad_in_base64 = 16384
+
+[hsm_capabilities]
+# nShield HSM requires to generate the IV.
+can_generate_iv = true
+is_zero_iv_required = true

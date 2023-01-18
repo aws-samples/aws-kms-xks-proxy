@@ -6,7 +6,8 @@ This package provides a sample implementation of the [AWS KMS External Keystore 
 
 The current implementation is written in [Rust](https://www.rust-lang.org/) and is known to work with the following types of HSM:
 * `LunaSA 7.4.0` (via Thales eLab)
-* Luna 7 Network HSM (hardware device)
+* `Luna 7 Network HSM` (hardware device)
+* `Entrust nShield XC HSM`
 * [SoftHSMv2](https://github.com/opendnssec/SoftHSMv2)
 * [AWS CloudHSM](https://aws.amazon.com/cloudhsm/)
 
@@ -97,7 +98,7 @@ sudo yum install -y xks-proxy-3.1.2-0.el7.x86_64.rpm
 
 Specify the configuration file path, such as `/var/local/xks-proxy/.secret/settings.toml`, by setting the environment variable `XKS_PROXY_SETTINGS_TOML`.
 
-See the `xks-axum/configuration` folders for some sample configuraions for various HSM's such as `Thales Luna HSM`, `AWS CloudHSM` and `SoftHSMv2`.
+See the `xks-axum/configuration` folders for some sample configuraions for various HSM's such as `Thales Luna HSM`, `Entrust nShield HSM`, `AWS CloudHSM` and `SoftHSMv2`.
 
 ### Manage `xks-proxy` as a systemd unit
 
