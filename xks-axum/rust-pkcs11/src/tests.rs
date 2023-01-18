@@ -117,7 +117,7 @@ fn ctx_new() {
 #[serial]
 fn ctx_initialize() {
     let mut ctx = Ctx::new(pkcs11_module_name()).unwrap();
-    let res = ctx.initialize(None);
+    let res = unsafe { ctx.initialize(None) };
     assert!(
         res.is_ok(),
         "failed to initialize context: {}",
@@ -129,7 +129,7 @@ fn ctx_initialize() {
 #[test]
 #[serial]
 fn ctx_new_and_initialize() {
-    let res = Ctx::new_and_initialize(pkcs11_module_name());
+    let res = unsafe { Ctx::new_and_initialize(pkcs11_module_name()) };
     assert!(
         res.is_ok(),
         "failed to create or initialize new context: {}",
@@ -140,7 +140,7 @@ fn ctx_new_and_initialize() {
 #[test]
 #[serial]
 fn ctx_finalize() {
-    let mut ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let mut ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let res = ctx.finalize();
     assert!(
         res.is_ok(),
@@ -152,7 +152,7 @@ fn ctx_finalize() {
 #[test]
 #[serial]
 fn ctx_get_info() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let res = ctx.get_info();
     assert!(
         res.is_ok(),
@@ -172,7 +172,7 @@ fn ctx_get_info() {
 #[test]
 #[serial]
 fn ctx_get_function_list() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let res = ctx.get_function_list();
     assert!(
         res.is_ok(),
@@ -186,7 +186,7 @@ fn ctx_get_function_list() {
 #[test]
 #[serial]
 fn ctx_get_slot_list() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let res = ctx.get_slot_list(false);
     assert!(
         res.is_ok(),
@@ -200,7 +200,7 @@ fn ctx_get_slot_list() {
 #[test]
 #[serial]
 fn ctx_get_slot_infos() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let slots = ctx.get_slot_list(false).unwrap();
     for slot in slots[..1].iter() {
         let slot = *slot;
@@ -224,7 +224,7 @@ fn ctx_get_slot_infos() {
 #[test]
 #[serial]
 fn ctx_get_token_infos() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let slots = ctx.get_slot_list(false).unwrap();
     for slot in slots[..1].iter() {
         let slot = *slot;
@@ -246,7 +246,7 @@ fn ctx_get_token_infos() {
 #[test]
 #[serial]
 fn ctx_get_mechanism_lists() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let slots = ctx.get_slot_list(false).unwrap();
     for slot in slots[..1].iter() {
         let slot = *slot;
@@ -265,7 +265,7 @@ fn ctx_get_mechanism_lists() {
 #[test]
 #[serial]
 fn ctx_get_mechanism_infos() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let slots = ctx.get_slot_list(false).unwrap();
     for slot in slots[..1].iter() {
         let slot = *slot;
@@ -288,7 +288,7 @@ fn ctx_get_mechanism_infos() {
 #[test]
 #[serial]
 fn ctx_init_token() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let slots = ctx.get_slot_list(false).unwrap();
     let pin = Some("1234");
     const LABEL: &str = "rust-unit-test";
@@ -314,7 +314,7 @@ fn ctx_init_token() {
 #[test]
 #[serial]
 fn ctx_init_pin() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let slots = ctx.get_slot_list(false).unwrap();
     let pin = Some("1234");
     const LABEL: &str = "rust-unit-test";
@@ -340,7 +340,7 @@ fn ctx_init_pin() {
 #[test]
 #[serial]
 fn ctx_set_pin() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let slots = ctx.get_slot_list(false).unwrap();
     let pin = Some("1234");
     let new_pin = Some("1234");
@@ -368,7 +368,7 @@ fn ctx_set_pin() {
 #[test]
 #[serial]
 fn ctx_open_session() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let slots = ctx.get_slot_list(false).unwrap();
     let pin = Some("1234");
     const LABEL: &str = "rust-unit-test";
@@ -390,7 +390,7 @@ fn ctx_open_session() {
 #[test]
 #[serial]
 fn ctx_close_session() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let slots = ctx.get_slot_list(false).unwrap();
     let pin = Some("1234");
     const LABEL: &str = "rust-unit-test";
@@ -414,7 +414,7 @@ fn ctx_close_session() {
 #[test]
 #[serial]
 fn ctx_close_all_sessions() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let slots = ctx.get_slot_list(false).unwrap();
     let pin = Some("1234");
     const LABEL: &str = "rust-unit-test";
@@ -437,7 +437,7 @@ fn ctx_close_all_sessions() {
 #[test]
 #[serial]
 fn ctx_get_session_info() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let slots = ctx.get_slot_list(false).unwrap();
     let pin = Some("1234");
     const LABEL: &str = "rust-unit-test";
@@ -462,7 +462,7 @@ fn ctx_get_session_info() {
 #[test]
 #[serial]
 fn ctx_login() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let slots = ctx.get_slot_list(false).unwrap();
     let pin = Some("1234");
     const LABEL: &str = "rust-unit-test";
@@ -487,7 +487,7 @@ fn ctx_login() {
 #[test]
 #[serial]
 fn ctx_logout() {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let slots = ctx.get_slot_list(false).unwrap();
     let pin = Some("1234");
     const LABEL: &str = "rust-unit-test";
@@ -618,7 +618,7 @@ fn attr_biginteger() {
 /// If you look at the tests here in a "serial" manner, if all the tests are working up until
 /// here, this will always succeed.
 fn fixture_token() -> Result<(Ctx, CK_SESSION_HANDLE), Error> {
-    let ctx = Ctx::new_and_initialize(pkcs11_module_name()).unwrap();
+    let ctx = unsafe { Ctx::new_and_initialize(pkcs11_module_name()).unwrap() };
     let slots = ctx.get_slot_list(false).unwrap();
     let pin = Some("1234");
     const LABEL: &str = "rust-unit-test";
