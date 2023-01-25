@@ -14,7 +14,7 @@ axum = { version = "0.6", features = ["headers"] }
 axum-server = { version = "0.4", features = ["tls-rustls"] }
 axum-macros = "0.3"
 
-base64 = "0.20"
+base64 = "0.21"
 bytes = "1.1"
 chrono = "0.4"
 const_format = "0.2"
@@ -47,7 +47,7 @@ serde_json = "1.0"
 serde_with = "2.0"
 
 tokio = { version = "1", features = ["rt-multi-thread"]}
-toml = "0.5"
+toml = "0.6"
 tonic = { version = "0.8", features = ["transport", "tls"] }
 tower-http = { version = "0.3", features = ["trace"] }
 
@@ -58,8 +58,8 @@ tracing-appender = "0.2"
 webpki = "0.22"
 
 [dev-dependencies]
-serial_test = "0.10"
-serial_test_derive = "0.10"
+serial_test = "1.0"
+serial_test_derive = "1.0"
 
 [patch.crates-io]
 # Patch to fix segmentation fault upon loading and initializing the libCryptoki2_64.so
