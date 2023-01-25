@@ -5,7 +5,8 @@ use std::str;
 
 use axum::extract::Extension;
 use axum::{extract::Path, http::StatusCode, response::IntoResponse};
-use base64;
+use base64::engine::general_purpose::STANDARD as Base64;
+use base64::Engine;
 use deadpool::unmanaged::Object;
 use pkcs11::types::CK_SESSION_HANDLE;
 use serde::{Deserialize, Serialize};
@@ -130,7 +131,7 @@ async fn do_enact(
     Ok((
         StatusCode::OK,
         axum::Json(DecryptResponse {
-            plaintext: base64::encode(plaintext),
+            plaintext: Base64.encode(plaintext),
         }),
     ))
 }

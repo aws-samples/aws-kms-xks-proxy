@@ -5,6 +5,9 @@ use std::collections::HashSet;
 use std::time::Duration;
 use std::{env, fs};
 
+use base64::engine::general_purpose::STANDARD as Base64;
+use base64::Engine;
+
 use lazy_static::lazy_static;
 use serde_derive::Deserialize;
 use serde_with::{serde_as, DurationSeconds};
@@ -180,10 +183,10 @@ pub fn env_value(key: &str, default: &str) -> String {
 
 fn load_ciphertext_metadata(ciphertext_metadata_b64: &Option<String>) -> Vec<u8> {
     match ciphertext_metadata_b64 {
-        Some(encoded) => match base64::decode(encoded) {
+        Some(encoded) => match Base64.decode(encoded) {
             Ok(decoded) => {
                 // https://github.com/marshallpierce/rust-base64/issues/189
-                if &base64::encode(&decoded) != encoded {
+                if &Base64.encode(&decoded) != encoded {
                     panic!("Misconfiguration: invalid base64 encoding of ciphertext metadata");
                 }
                 if decoded.len() > CIPHERTEXT_METATDATA_MAX_BYTE_LENGTH {

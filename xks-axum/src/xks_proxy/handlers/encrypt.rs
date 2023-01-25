@@ -7,7 +7,8 @@ use std::{mem, str};
 
 use axum::extract::Extension;
 use axum::{extract::Path, http::StatusCode, response::IntoResponse};
-use base64;
+use base64::engine::general_purpose::STANDARD as Base64;
+use base64::Engine;
 use oso::PolarClass;
 use pkcs11::types::{
     CKM_AES_GCM, CK_BYTE, CK_GCM_PARAMS, CK_GCM_PARAMS_PTR, CK_MECHANISM, CK_OBJECT_HANDLE,
@@ -236,9 +237,9 @@ async fn do_enact(
     Ok((
         StatusCode::OK,
         axum::Json(EncryptResponse {
-            ciphertext: base64::encode(ciphertext),
-            initializationVector: base64::encode(iv),
-            authenticationTag: base64::encode(tag),
+            ciphertext: Base64.encode(ciphertext),
+            initializationVector: Base64.encode(iv),
+            authenticationTag: Base64.encode(tag),
             ciphertextMetadata: SETTINGS.server.ciphertext_metadata_b64.to_owned(),
             ciphertextDataIntegrityValue: cdiv,
         }),

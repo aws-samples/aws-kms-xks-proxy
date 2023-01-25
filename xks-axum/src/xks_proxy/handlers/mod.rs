@@ -6,11 +6,12 @@ use std::fmt::Debug;
 use std::mem;
 use std::time::Duration;
 
+use axum::body::HttpBody;
 use axum::extract::rejection::JsonRejection;
 use axum::extract::FromRequest;
-// use axum::extract::{FromRequest, RequestParts};
-use axum::body::HttpBody;
 use axum::{async_trait, BoxError};
+use base64::engine::general_purpose::STANDARD as Base64;
+use base64::Engine;
 use deadpool::unmanaged::{Object, Pool};
 use http::{Request, StatusCode};
 use oso::ToPolar;
@@ -102,7 +103,7 @@ fn find_secret_key(
 
 fn sha256_then_b64(data: &[u8]) -> String {
     let digest = digest::digest(&digest::SHA256, data);
-    let b64 = base64::encode(digest.as_ref());
+    let b64 = Base64.encode(digest.as_ref());
     b64
 }
 
@@ -112,7 +113,7 @@ fn sha256(data: &[u8], _label: &str) -> Vec<u8> {
 }
 
 fn base64_decode(encoded: &str, label: &str) -> XksProxyResult<Vec<u8>> {
-    base64::decode(encoded).map_err(|decode_error| {
+    Base64.decode(encoded).map_err(|decode_error| {
         ValidationException.as_axum_error(format!(
             "Failed to base64 decode the {label} of {} bytes with error: {decode_error:?}",
             encoded.len(),
