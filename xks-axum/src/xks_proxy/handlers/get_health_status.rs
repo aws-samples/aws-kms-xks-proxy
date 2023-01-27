@@ -152,7 +152,7 @@ async fn do_enact(
         xksProxyFleetSize: 1,
         xksProxyVendor: "AWS-KMS".to_string(),
         xksProxyModel: "RustXksProxy".to_string(),
-        ekmVendor: format!("{} (serial number: {})", manufacturer_id, serial_number),
+        ekmVendor: format!("{manufacturer_id} (serial number: {serial_number})"),
         ekmFleetDetails: vec![EkmFleetDetails {
             id: label.to_string(),
             model: format!(
