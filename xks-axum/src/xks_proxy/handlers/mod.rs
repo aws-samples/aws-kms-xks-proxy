@@ -22,7 +22,7 @@ use pkcs11::types::{
     CK_GCM_PARAMS, CK_GCM_PARAMS_PTR, CK_MECHANISM, CK_OBJECT_HANDLE, CK_SESSION_HANDLE, CK_TRUE,
     CK_ULONG, CK_VOID_PTR,
 };
-use ring::digest;
+use aws_lc_rs::digest;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use tracing::instrument;
