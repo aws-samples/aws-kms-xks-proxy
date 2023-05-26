@@ -6,6 +6,7 @@ use std::fmt::Debug;
 use std::mem;
 use std::time::Duration;
 
+use aws_lc_rs::digest;
 use axum::body::HttpBody;
 use axum::extract::rejection::JsonRejection;
 use axum::extract::FromRequest;
@@ -22,7 +23,6 @@ use pkcs11::types::{
     CK_GCM_PARAMS, CK_GCM_PARAMS_PTR, CK_MECHANISM, CK_OBJECT_HANDLE, CK_SESSION_HANDLE, CK_TRUE,
     CK_ULONG, CK_VOID_PTR,
 };
-use aws_lc_rs::digest;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use tracing::instrument;
