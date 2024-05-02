@@ -10,7 +10,7 @@ RUN mkdir -p $HOME/aws-kms-xks-proxy
 COPY ./xks-axum $HOME/aws-kms-xks-proxy/xks-axum
 
 RUN apt-get update -y
-RUN apt-get install -y softhsm opensc curl build-essential
+RUN apt-get install -y softhsm2 opensc curl build-essential
 
 RUN softhsm2-util --init-token --slot 0 --label "xks-proxy" --so-pin 1234 --pin 1234
 RUN pkcs11-tool --module /usr/lib/softhsm/libsofthsm2.so \
