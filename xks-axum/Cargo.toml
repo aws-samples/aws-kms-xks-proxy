@@ -39,7 +39,7 @@ ring = "0.16"
 rustls = "0.20"
 rustls-pemfile = "1.0"
 
-scratchstack-aws-signature = "0.10"
+scratchstack-aws-signature = "=0.10.5"
 
 serde = { version = "1.0", features = ["derive"] }
 serde_derive = "1.0"
