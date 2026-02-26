@@ -781,12 +781,12 @@ fn ctx_get_attribute_value() {
             println!("CK_RV: 0x{:x}, Template: {:?}", rv, &template);
         }
 
-        let class: CK_ULONG = 0;
-        let private: CK_BBOOL = 1;
+        let mut class: CK_ULONG = 0;
+        let mut private: CK_BBOOL = 1;
         let label: String = String::with_capacity(template[2].ulValueLen.try_into().unwrap());
         let value: Vec<CK_BYTE> = Vec::with_capacity(template[3].ulValueLen.try_into().unwrap());
-        template[0].set_ck_ulong(&class);
-        template[1].set_bool(&private);
+        template[0].set_ck_ulong(&mut class);
+        template[1].set_bool(&mut private);
         template[2].set_string(&label);
         template[3].set_bytes(&value.as_slice());
 

@@ -116,36 +116,36 @@ async fn do_enact(
         CK_ATTRIBUTE::new(CKA_UNWRAP),
     ];
 
-    let key_class = 0;
-    let key_type = 0;
-    let key_size = 0;
+    let mut key_class: CK_ULONG = 0;
+    let mut key_type: CK_KEY_TYPE = 0;
+    let mut key_size: CK_ULONG = 0;
 
-    let can_encrypt = 0;
-    let can_decrypt = 0;
-    let can_sign = 0;
-    let can_verify = 0;
-    let can_wrap = 0;
-    let can_unwrap = 0;
+    let mut can_encrypt = 0;
+    let mut can_decrypt = 0;
+    let mut can_sign = 0;
+    let mut can_verify = 0;
+    let mut can_wrap = 0;
+    let mut can_unwrap = 0;
 
     let mut i = 0;
-    template[i].set_ck_ulong(&key_class);
+    template[i].set_ck_ulong(&mut key_class);
     i += 1;
-    template[i].set_ck_ulong(&key_type);
+    template[i].set_ck_ulong(&mut key_type);
     i += 1;
-    template[i].set_ck_ulong(&key_size);
+    template[i].set_ck_ulong(&mut key_size);
     i += 1;
 
-    template[i].set_bool(&can_encrypt);
+    template[i].set_bool(&mut can_encrypt);
     i += 1;
-    template[i].set_bool(&can_decrypt);
+    template[i].set_bool(&mut can_decrypt);
     i += 1;
-    template[i].set_bool(&can_sign);
+    template[i].set_bool(&mut can_sign);
     i += 1;
-    template[i].set_bool(&can_verify);
+    template[i].set_bool(&mut can_verify);
     i += 1;
-    template[i].set_bool(&can_wrap);
+    template[i].set_bool(&mut can_wrap);
     i += 1;
-    template[i].set_bool(&can_unwrap);
+    template[i].set_bool(&mut can_unwrap);
 
     let key_handle =
         match super::get_secret_key_handle(session_handle_object.deref(), key_id.as_str()) {
