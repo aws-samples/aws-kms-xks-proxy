@@ -776,8 +776,8 @@ impl CK_ATTRIBUTE {
     }
 
     #[allow(clippy::trivially_copy_pass_by_ref)]
-    pub fn set_bool(&mut self, b: &CK_BBOOL) {
-        self.pValue = b as *const CK_BBOOL as CK_VOID_PTR;
+    pub fn set_bool(&mut self, b: &mut CK_BBOOL) {
+        self.pValue = b as *mut CK_BBOOL as CK_VOID_PTR;
         if self.ulValueLen == 0 {
             self.ulValueLen = 1;
         }
@@ -797,8 +797,8 @@ impl CK_ATTRIBUTE {
     }
 
     #[allow(clippy::trivially_copy_pass_by_ref)]
-    pub fn set_ck_ulong(&mut self, val: &CK_ULONG) {
-        self.pValue = val as *const _ as CK_VOID_PTR;
+    pub fn set_ck_ulong(&mut self, val: &mut CK_ULONG) {
+        self.pValue = val as *mut _ as CK_VOID_PTR;
         if self.ulValueLen == 0 {
             self.ulValueLen = std::mem::size_of::<CK_ULONG>() as CK_ULONG;
         }
@@ -817,8 +817,8 @@ impl CK_ATTRIBUTE {
     }
 
     #[allow(clippy::trivially_copy_pass_by_ref)]
-    pub fn set_ck_long(&mut self, val: &CK_LONG) {
-        self.pValue = val as *const _ as CK_VOID_PTR;
+    pub fn set_ck_long(&mut self, val: &mut CK_LONG) {
+        self.pValue = val as *mut _ as CK_VOID_PTR;
         if self.ulValueLen == 0 {
             self.ulValueLen = std::mem::size_of::<CK_LONG>() as CK_ULONG;
         }
