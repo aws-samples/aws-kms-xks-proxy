@@ -6,6 +6,7 @@
 FROM ubuntu as builder
 
 ENV HOME=/root
+ENV RUST_VERSION=1.75.0
 RUN mkdir -p $HOME/aws-kms-xks-proxy
 COPY ./xks-axum $HOME/aws-kms-xks-proxy/xks-axum
 
@@ -17,8 +18,8 @@ RUN pkcs11-tool --module /usr/lib/softhsm/libsofthsm2.so \
                 --token-label xks-proxy --login --login-type user \
                 --keygen --id F0 --label foo --key-type aes:32 \
                 --pin 1234
-
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+RUN curl "https://static.rust-lang.org/dist/rust-$RUST_VERSION-x86_64-unknown-linux-gnu.tar.gz" -o rust.tar.gz && \
+    tar -xvf rust.tar.gz && cd "rust-$RUST_VERSION-x86_64-unknown-linux-gnu" && ./install.sh
 ENV PATH="$HOME/.cargo/bin:$PATH"
 
 RUN mkdir -p /var/local/xks-proxy/.secret
